@@ -23,7 +23,7 @@ class StockChecker:
         product_elements = soup.select("li.product")
 
         for product in product_elements:
-            title = product.select_one("a.woocommerce-loop-product__link")["title"]
+            title = product.select_one("a")["title"]
             status = "❌ Out of Stock"
             if "outofstock" not in product.get("class", []):
                 status = "✅ In Stock"

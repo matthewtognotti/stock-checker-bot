@@ -18,5 +18,10 @@ The bot will use Beautiful Soup for web scraping and Twilio for sending text mes
 
 pip install bs4
 
+https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+
+
+Might actually need to use selenium, becuase the site I am targeting requires the user to be logged in to view product data. 
+
 
 
