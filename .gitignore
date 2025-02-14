@@ -1,0 +1,2 @@
+*.py[co]  # Ignores .pyc and .pyo files
+
