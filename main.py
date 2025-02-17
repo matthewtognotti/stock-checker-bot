@@ -6,6 +6,10 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import project_constants
 
+import asyncio
+from telegram import Bot
+from project_constants import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+
 class Product:
     def __init__(self, title, status):
         self.title = title
@@ -21,6 +25,7 @@ class StockChecker:
         driver = self.driver
         # Open the log in page
         driver.get(project_constants.LOGIN_PAGE)
+        time.sleep(5) #NOTE: FIX THIS USE WEBDRIVER WAIT INSTEAD???
         # Find the email address input and input the email
         email_input = driver.find_element(By.NAME, "username")
         email_input.send_keys(project_constants.EMAIL)
@@ -41,7 +46,7 @@ class StockChecker:
         # Switch back to the main content
         driver.switch_to.default_content()
         # Find the log in button and click the log in button
-        time.sleep(2)
+        time.sleep(3) #NOTE: FIX THIS
         login_button = driver.find_element(By.NAME, "login")
         login_button.click() # Now we are logged into the site
     
@@ -75,24 +80,33 @@ class StockChecker:
         return message
     
     def quit(self):
-        # Wait to see the results
-        time.sleep(5)
-        # Close the browser
+        # Close the driver/browser
         self.driver.quit()
         
+            
 class TelegramBot:
-    def __init__(self, something):
-        self.something = something
-    
-    def message_stock_update(self):
-        pass
+    def __init__(self):
+        self.bot = Bot(token=TELEGRAM_TOKEN)
+
+    async def send_message(self, message):
+        # Await the coroutine to properly send the message
+        await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+
 
 def main():
+    # Log in
     checker = StockChecker()
     checker.login()
+    
+    # Scrape product data and format message
     checker.get_products()
     message = checker.format_message()
-    print(message)
+ 
+    # Send message to user via Telegram
+    bot = TelegramBot()
+    asyncio.run(bot.send_message(message))
+    
+    # Quit the Selenium webdriver
     checker.quit()
 
 if __name__ == "__main__":
