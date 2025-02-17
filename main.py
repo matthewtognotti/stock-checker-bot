@@ -23,16 +23,21 @@ class StockChecker:
     
     def login(self):
         driver = self.driver
+        
         # Open the log in page
         driver.get(project_constants.LOGIN_PAGE)
-        time.sleep(5) #NOTE: FIX THIS USE WEBDRIVER WAIT INSTEAD???
         # Find the email address input and input the email
         email_input = driver.find_element(By.NAME, "username")
+        # Use JavaScript to scroll the element into view
+        driver.execute_script("arguments[0].scrollIntoView();", email_input)
         email_input.send_keys(project_constants.EMAIL)
+        
         # Find the password input and input the password
         password_input = driver.find_element(By.NAME, "password")
+        # Use JavaScript to scroll the element into view
+        driver.execute_script("arguments[0].scrollIntoView();", password_input)
         password_input.send_keys(project_constants.PASSWORD)
-        time.sleep(1.5) # Crashes without this delay... Fix that. 
+        
         # Wait for the iframe to be present and switch to it
         iframe = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[title='reCAPTCHA']"))
@@ -42,12 +47,15 @@ class StockChecker:
         recaptcha_checkbox = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border"))
         )
+        # Use JavaScript to scroll the element into view
+        driver.execute_script("arguments[0].scrollIntoView();", recaptcha_checkbox)
         recaptcha_checkbox.click()
-        # Switch back to the main content
+        
+        # Switch back to the main content and click the login button
         driver.switch_to.default_content()
-        # Find the log in button and click the log in button
-        time.sleep(3) #NOTE: FIX THIS
         login_button = driver.find_element(By.NAME, "login")
+        # Use JavaScript to scroll the element into view
+        driver.execute_script("arguments[0].scrollIntoView();", login_button)
         login_button.click() # Now we are logged into the site
     
     def get_products(self):
@@ -101,12 +109,13 @@ def main():
     # Scrape product data and format message
     checker.get_products()
     message = checker.format_message()
- 
+
     # Send message to user via Telegram
     bot = TelegramBot()
     asyncio.run(bot.send_message(message))
     
-    # Quit the Selenium webdriver
+    print("Stock Update Complete")
+    
     checker.quit()
 
 if __name__ == "__main__":
