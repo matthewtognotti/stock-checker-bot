@@ -79,6 +79,13 @@ class StockChecker:
         time.sleep(5)
         # Close the browser
         self.driver.quit()
+        
+class TelegramBot:
+    def __init__(self, something):
+        self.something = something
+    
+    def message_stock_update(self):
+        pass
 
 def main():
     checker = StockChecker()
