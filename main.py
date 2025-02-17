@@ -6,11 +6,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import project_constants
 
-# products
-# login method
-# get product data method
-# format message method
-
 class Product:
     def __init__(self, title, status):
         self.title = title
@@ -32,7 +27,7 @@ class StockChecker:
         # Find the password input and input the password
         password_input = driver.find_element(By.NAME, "password")
         password_input.send_keys(project_constants.PASSWORD)
-        time.sleep(1.25) # Crashes without this delay... Fix that. 
+        time.sleep(1.5) # Crashes without this delay... Fix that. 
         # Wait for the iframe to be present and switch to it
         iframe = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[title='reCAPTCHA']"))
