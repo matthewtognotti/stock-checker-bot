@@ -8,7 +8,19 @@ from datetime import datetime
 import pytz
 import asyncio
 from telegram import Bot
-from project_constants import LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, EXCLUDED_PRODUCTS, COMPANY_NAME
+from project_constants import EXCLUDED_PRODUCTS
+from dotenv import load_dotenv
+from os import getenv
+
+# Environment variables and secrets 
+load_dotenv()
+LOGIN_PAGE = getenv("LOGIN_PAGE")
+EMAIL = getenv("EMAIL")
+PASSWORD = getenv("PASSWORD")
+PRODUCT_PAGE = getenv("PRODUCT_PAGE")
+TELEGRAM_TOKEN = getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = getenv("TELEGRAM_CHAT_ID")
+COMPANY_NAME = getenv("COMPANY_NAME")
 
 class Product:
     def __init__(self, title, status):
@@ -78,7 +90,6 @@ class StockChecker:
             title_element = product.find_element(By.CSS_SELECTOR, "a")
             title = title_element.get_attribute("title")
             
-            # Exclude specified products
             if title in EXCLUDED_PRODUCTS:
                 continue
             
@@ -113,7 +124,7 @@ class TelegramBot:
         # Await the coroutine to properly send the message
         await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
-# Only send stock updates during 9am to 5pm (Japan Time) during weekdays 
+# Only send stock updates during 9am to 5:30pm (Japan Time) during weekdays 
 def japan_business_hours():
     # Define the Japan timezone
     japan_tz = pytz.timezone('Asia/Tokyo')
@@ -133,7 +144,7 @@ def japan_business_hours():
     return start_time <= now_in_japan <= end_time
 
 def main():
-    # Log in
+    # bot = TelegramBot()
     checker = StockChecker()
     checker.login()
     
@@ -146,10 +157,10 @@ def main():
             
             # Only message the user if at least one item is in stock,
             # else don't send a message
+            bot = TelegramBot()
             if checker.stock_count > 1:
                 message = checker.format_message()
                 # Send message to user via Telegram
-                bot = TelegramBot()
                 asyncio.run(bot.send_message(message))
         
         time.sleep(60) # Sleep for 1 minute
