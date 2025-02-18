@@ -8,7 +8,7 @@ from datetime import datetime
 import pytz
 import asyncio
 from telegram import Bot
-from project_constants import EXCLUDED_PRODUCTS
+from constants import EXCLUDED_PRODUCTS
 from dotenv import load_dotenv
 from os import getenv
 
