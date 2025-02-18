@@ -26,9 +26,7 @@ Might actually need to use selenium, becuase the site I am targeting requires th
 
 
 TODO:
-- Use .env for secrets or something else
-- Keep the bot logged in and just refresh the page when updating the stock status for a new message
-- Figure out how to have the bot run and send the message during working hours every 30 minutes or so. 
-- Format message to send product link and organized in a table 
+- Use .env for secrets or something else.
+- Format message to send product link and organized in a table.
 - Clean up code and create new repo possibly? to showcase the project. Good comments and documentation. 
 

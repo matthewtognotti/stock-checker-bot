@@ -4,11 +4,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
-import project_constants
-
+from datetime import datetime
+import pytz
 import asyncio
 from telegram import Bot
-from project_constants import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+from project_constants import LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, EXCLUDED_PRODUCTS, COMPANY_NAME
 
 class Product:
     def __init__(self, title, status):
@@ -20,23 +20,25 @@ class StockChecker:
         # Set up the webdriver
         self.driver = webdriver.Chrome()
         self.products = []
+        self.stock_count = 0
     
     def login(self):
         driver = self.driver
         
         # Open the log in page
-        driver.get(project_constants.LOGIN_PAGE)
+        driver.get(LOGIN_PAGE)
+        
         # Find the email address input and input the email
         email_input = driver.find_element(By.NAME, "username")
         # Use JavaScript to scroll the element into view
         driver.execute_script("arguments[0].scrollIntoView();", email_input)
-        email_input.send_keys(project_constants.EMAIL)
+        email_input.send_keys(EMAIL)
         
         # Find the password input and input the password
         password_input = driver.find_element(By.NAME, "password")
         # Use JavaScript to scroll the element into view
         driver.execute_script("arguments[0].scrollIntoView();", password_input)
-        password_input.send_keys(project_constants.PASSWORD)
+        password_input.send_keys(PASSWORD)
         
         # Wait for the iframe to be present and switch to it
         iframe = WebDriverWait(driver, 10).until(
@@ -60,37 +62,48 @@ class StockChecker:
     
     def get_products(self):
         driver = self.driver
+        # Keep track of the number of in stock items
+        self.stock_count = 0
+        
         # Now go to the product page
-        driver.get(project_constants.PRODUCT_PAGE)
-        # Scrape product data and print it
+        driver.get(PRODUCT_PAGE)
+
         product_elements = driver.find_elements(By.CSS_SELECTOR, "li.product")
+        
+        # Clear old data from last update
+        self.products.clear()
         
         for product in product_elements:
             # Extract product title
             title_element = product.find_element(By.CSS_SELECTOR, "a")
             title = title_element.get_attribute("title")
+            
+            # Exclude specified products
+            if title in EXCLUDED_PRODUCTS:
+                continue
+            
             # Check stock status
             status = "❌ Out of Stock"
-            if "outofstock" not in product.get_attribute("class"):
+            if "instock" in product.get_attribute("class"):
                 status = "✅ In Stock"
+                self.stock_count += 1
                 
             # Add product to the product list
             self.products.append(Product(title, status))
 
     def format_message(self):
         formatted_time = time.strftime("%a, %d %b %I:%M %p", time.localtime())
-        message = "Marukyu Koyamaen Stock Check:\n\n"
+        message = COMPANY_NAME + " Stock Check\n\n"
         message += f"🕜 Last Checked: {formatted_time}\n\n"
-
+        
         for product in self.products:
-            message += f"🍵 Name: {product.title}\n📦 Status: {product.status}\n\n"
-
+            if product.status == "✅ In Stock":
+                message += f"🍵 Name: {product.title}\n📦 Status: {product.status}\n\n"
         return message
     
     def quit(self):
         # Close the driver/browser
         self.driver.quit()
-        
             
 class TelegramBot:
     def __init__(self):
@@ -100,23 +113,46 @@ class TelegramBot:
         # Await the coroutine to properly send the message
         await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
+# Only send stock updates during 9am to 5pm (Japan Time) during weekdays 
+def japan_business_hours():
+    # Define the Japan timezone
+    japan_tz = pytz.timezone('Asia/Tokyo')
+    
+    # Get the current time in Japan
+    now_in_japan = datetime.now(japan_tz)
+    
+    # Check if it's a weekday (Monday = 0, Sunday = 6)
+    if now_in_japan.weekday() >= 5:  # Saturday (5) or Sunday (6)
+        return False
+    
+    # Define business hours (9:00 AM to 5:30 PM)
+    start_time = now_in_japan.replace(hour=9, minute=0, second=0, microsecond=0)
+    end_time = now_in_japan.replace(hour=17, minute=30, second=0, microsecond=0)
+    
+    # Check if the current time is within business hours
+    return start_time <= now_in_japan <= end_time
 
 def main():
     # Log in
     checker = StockChecker()
     checker.login()
     
-    # Scrape product data and format message
-    checker.get_products()
-    message = checker.format_message()
-
-    # Send message to user via Telegram
-    bot = TelegramBot()
-    asyncio.run(bot.send_message(message))
+    while True:
+        if japan_business_hours():
+            # Refresh the page to update the stock data
+            checker.driver.refresh()
+            # Scrape product data
+            checker.get_products()
+            
+            # Only message the user if at least one item is in stock,
+            # else don't send a message
+            if checker.stock_count > 1:
+                message = checker.format_message()
+                # Send message to user via Telegram
+                bot = TelegramBot()
+                asyncio.run(bot.send_message(message))
+        
+        time.sleep(60) # Sleep for 1 minute
     
-    print("Stock Update Complete")
-    
-    checker.quit()
-
 if __name__ == "__main__":
     main()
