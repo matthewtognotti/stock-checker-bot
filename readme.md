@@ -91,6 +91,7 @@ Before running the script, ensure you have the following:
 
 ## 🚀 Further Improvements
 
+- [ ] **Mutlithreading??**: One thread for stock updates, another for adding to cart and buying
 - [ ] **Use recent versions**: Upgrade the environment to use  the most recent version of python and dependencies
 - [ ] **Create a `requirements.txt` file** with the latest versions of the dependencies.
 - [ ] **Clean up code and create new repo**: Showcase the project with good comments and documentation.
