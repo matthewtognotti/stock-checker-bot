@@ -91,16 +91,16 @@ Before running the script, ensure you have the following:
 
 ## 🚀 Further Improvements
 
-- [ ] **Mutlithreading??**: One thread for stock updates, another for adding to cart and buying. ACTUALY MULTIPROCESSING??
-- [ ] Enable user to BUY PRODUCT. ALSO LIST ALL PRODUCT TYPES LIKE 40g, 100g. ETC. 
-- [ ] **Use recent versions**: Upgrade the environment to use  the most recent version of python and dependencies. USE VIRTUAL ENV
+- [ ] **Mutliprocessing**: One process for stock updates, another for adding to cart and buying (BuyProduct class).
+- [ ] **Use recent versions**: Upgrade the environment to use  the most recent version of python and dependencies. Use virtual environment.
 - [ ] **Create a `requirements.txt` file** with the latest versions of the dependencies.
 - [ ] **Clean up code and create new repo**: Showcase the project with good comments and documentation.
-- [ ] **Format message to send product link**: Organize the message in a table for better readability. USE BOT LINK BUTTON. 
+- [ ] **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
 - [ ] **Allow user to request updates**: Enable users to send `/update` and receive a table with all in-stock products or a "no products in stock" message.
 - [ ] **Add Error Handling**: Implement robust error handling for login failures, network issues, and Telegram API errors.
 - [ ] **Add Logging**: Implement a logging system to track bot activity, errors, and stock updates.
 - [ ] **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
+- [ ] Allow to run on AWS Lambda or Google Cloud Functions.
 
 ---
 
