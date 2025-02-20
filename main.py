@@ -158,7 +158,7 @@ def main():
             # Only message the user if at least one item is in stock,
             # else don't send a message
             bot = TelegramBot()
-            if checker.stock_count > 1:
+            if checker.stock_count > 0:
                 message = checker.format_message()
                 # Send message to user via Telegram
                 asyncio.run(bot.send_message(message))
