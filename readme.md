@@ -91,6 +91,7 @@ Before running the script, ensure you have the following:
 
 ## 🚀 Further Improvements (In Order)
 
+- [ ] Fix: Instantiate TelegramBot once outside the loop.
 - [ ] **Use recent versions**: Upgrade the environment to use the most recent version of python and dependencies. Use virtual environment.
 - [ ] **Create a `requirements.txt` file** with the latest versions of the dependencies.
 - [ ] Run it on Windows PC 24/7.

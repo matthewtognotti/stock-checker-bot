@@ -11,6 +11,7 @@ from telegram import Bot
 from constants import EXCLUDED_PRODUCTS
 from dotenv import load_dotenv
 from os import getenv
+import logging
 
 # Environment variables and secrets 
 load_dotenv()
@@ -21,6 +22,9 @@ PRODUCT_PAGE = getenv("PRODUCT_PAGE")
 TELEGRAM_TOKEN = getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = getenv("TELEGRAM_CHAT_ID")
 COMPANY_NAME = getenv("COMPANY_NAME")
+
+if not all([LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, COMPANY_NAME]):
+    raise ValueError("Missing environment variables. Check your .env file.")
 
 class Product:
     def __init__(self, title, status):
@@ -144,26 +148,35 @@ def japan_business_hours():
     return start_time <= now_in_japan <= end_time
 
 def main():
-    # bot = TelegramBot()
+    bot = TelegramBot()
     checker = StockChecker()
     checker.login()
     
-    while True:
-        if japan_business_hours():
-            # Refresh the page to update the stock data
-            checker.driver.refresh()
-            # Scrape product data
-            checker.get_products()
+    # Send message to user via Telegram
+    asyncio.run(bot.send_message("The bot has successfully started"))
+    logging.info("Bot is up and running")
+    
+    try:
+        while True:
+            if japan_business_hours():
+                # Refresh the page to update the stock data
+                checker.driver.refresh()
+                # Scrape product data
+                checker.get_products()
+                
+                # Only message the user if at least one item is in stock,
+                # else don't send a message
+                if checker.stock_count > 0:
+                    message = checker.format_message()
+                    # Send message to user via Telegram
+                    asyncio.run(bot.send_message(message))
             
-            # Only message the user if at least one item is in stock,
-            # else don't send a message
-            bot = TelegramBot()
-            if checker.stock_count > 0:
-                message = checker.format_message()
-                # Send message to user via Telegram
-                asyncio.run(bot.send_message(message))
+            time.sleep(60) # Sleep for 1 minute
+            
+    except KeyboardInterrupt:
+        checker.quit()
+        logging.info("Process interrupted by Keyboard. Closing WebDriver.")
         
-        time.sleep(60) # Sleep for 1 minute
     
 if __name__ == "__main__":
     main()
