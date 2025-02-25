@@ -44,7 +44,7 @@ Before running the script, ensure you have the following:
     ```bash
     git clone https://github.com/matthewtognotti/stock-checker-bot
     cd stock-checker-bot
-
+    ```
 2. ** Create your Virtual Environemnt (Optional)**:
     ```bash
     python3 -m venv venv
@@ -93,17 +93,16 @@ Before running the script, ensure you have the following:
 ## 🚀 Further Improvements (In Order)
 
 - [ ] Fix issue with telegram bot instantiation in while loop. errors if it is outside. 
-- [ ] **Use recent versions**: Upgrade the environment to use the most recent version of python and dependencies. Use virtual environment.
-- [ ] **Create a `requirements.txt` file** with the latest versions of the dependencies.
 - [ ] Run it on Windows PC 24/7.
 - [ ] **Clean up code and create new repo**: Showcase the project with good comments and documentation.
+  
 - [ ] **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
 - [ ] **Mutliprocessing**: One process for stock updates, another for adding to cart and buying (BuyProduct class).
 - [ ] **Add Logging**: Implement a logging system to track bot activity, errors, and stock updates.
 - [ ] **Allow user to request updates**: Enable users to send `/update` and receive a table with all in-stock products or a "no products in stock" message.
 - [ ] **Add Error Handling**: Implement robust error handling for login failures, network issues, and Telegram API errors.
 - [ ] **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
-- [ ] Allow to run on AWS Lambda or Google Cloud Functions.
+- [ ] Run on AWS Lambda or Google Cloud Functions.
 
 ---
 
