@@ -103,7 +103,6 @@ Before running the script, ensure you have the following:
 - [ ] **Add Error Handling**: Implement robust error handling for login failures, network issues, and Telegram API errors.
 - [ ] **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
 - [ ] Allow to run on AWS Lambda or Google Cloud Functions.
-- [ ] ** Unit testing?? **
 
 ---
 
