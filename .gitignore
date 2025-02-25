@@ -1,3 +1,4 @@
 .env
 constants.py
 __pycache__/
+venv

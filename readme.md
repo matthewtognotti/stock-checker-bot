@@ -32,13 +32,9 @@ This script automates the process of checking product stock on a website that re
 Before running the script, ensure you have the following:
 
 1. **Python 3.x**: The script is written in Python.
-2. **Selenium**: Install Selenium using pip:
-    ```bash
-    pip install selenium 
-    ```
-3. **Telegram Bot**: Create a Telegram bot and obtain the bot token and chat ID.
-4. **ChromeDriver**: Download and install ChromeDriver that matches your Chrome browser version.
-5. **Environment Variables**: Set up the required environment variables in a `.env` file.
+2. **Telegram Bot**: Create a Telegram bot and obtain the bot token and chat ID.
+3. **ChromeDriver**: Download and install ChromeDriver that matches your Chrome browser version.
+4. **Environment Variables**: Set up the required environment variables in a `.env` file.
 
 ---
 
@@ -46,22 +42,27 @@ Before running the script, ensure you have the following:
 
 1. **Clone the Repository**:
     ```bash
-    git clone https://github.com/your-repo/stock-checker-bot.git
+    git clone https://github.com/matthewtognotti/stock-checker-bot
     cd stock-checker-bot
+
+2. ** Create your Virtual Environemnt (Optional)**:
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
     ```
-2. **Install Dependencies**:
+3. **Install Dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
-3. **Set Up Environment Variables**:
+4. **Set Up Environment Variables**:
     Create a `.env` file in the root directory and add the following variables:
     ```env
     TELEGRAM_BOT_TOKEN=your_telegram_bot_token
     TELEGRAM_CHAT_ID=your_telegram_chat_id
     ```
-4. **Run the Script**:
+5. **Run the Script**:
     ```bash
-    python stock_checker_bot.py
+    python3 main.py
     ```
 
 ---
