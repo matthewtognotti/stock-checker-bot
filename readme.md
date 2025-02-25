@@ -1,11 +1,11 @@
-# 🛒 Stock Checker Bot with Telegram Notifications 🤖
+# 🛒 Stock Checker Bot with Telegram Notifications
 
 This script automates the process of checking product stock on a website that requires login to view stock data. If any items are in stock, the bot sends a notification of the products in stock to the user via Telegram. The bot operates during specified business hours (9:00 AM to 5:30 PM Japan Time) on weekdays.
 
 ---
 
 ## 📑 Table of Contents
-- [🛒 Stock Checker Bot with Telegram Notifications 🤖](#-stock-checker-bot-with-telegram-notifications-)
+- [🛒 Stock Checker Bot with Telegram Notifications](#-stock-checker-bot-with-telegram-notifications)
   - [📑 Table of Contents](#-table-of-contents)
   - [✨ Features](#-features)
   - [📋 Prerequisites](#-prerequisites)

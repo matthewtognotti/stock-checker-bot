@@ -27,9 +27,10 @@ if not all([LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_
     raise ValueError("Missing environment variables. Check your .env file.")
 
 class Product:
-    def __init__(self, title, status):
+    def __init__(self, title, status, url):
         self.title = title
         self.status = status
+        self.url = url
 
 class StockChecker:
     def __init__(self):
@@ -37,7 +38,11 @@ class StockChecker:
         self.driver = webdriver.Chrome()
         self.products = []
         self.stock_count = 0
-    
+        
+    # Use JavaScript to scroll the element into view
+    def scroll_into_view(self, element):
+        self.driver.execute_script("arguments[0].scrollIntoView();", element)
+        
     def login(self):
         driver = self.driver
         
@@ -46,14 +51,12 @@ class StockChecker:
         
         # Find the email address input and input the email
         email_input = driver.find_element(By.NAME, "username")
-        # Use JavaScript to scroll the element into view
-        driver.execute_script("arguments[0].scrollIntoView();", email_input)
+        self.scroll_into_view(email_input)
         email_input.send_keys(EMAIL)
         
         # Find the password input and input the password
         password_input = driver.find_element(By.NAME, "password")
-        # Use JavaScript to scroll the element into view
-        driver.execute_script("arguments[0].scrollIntoView();", password_input)
+        self.scroll_into_view(password_input)
         password_input.send_keys(PASSWORD)
         
         # Wait for the iframe to be present and switch to it
@@ -65,16 +68,14 @@ class StockChecker:
         recaptcha_checkbox = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border"))
         )
-        # Use JavaScript to scroll the element into view
-        driver.execute_script("arguments[0].scrollIntoView();", recaptcha_checkbox)
+        self.scroll_into_view(recaptcha_checkbox)
         recaptcha_checkbox.click()
         
         # Switch back to the main content and click the login button
         driver.switch_to.default_content()
         login_button = driver.find_element(By.NAME, "login")
-        # Use JavaScript to scroll the element into view
-        driver.execute_script("arguments[0].scrollIntoView();", login_button)
-        login_button.click() # Now we are logged into the site
+        self.scroll_into_view(login_button)
+        login_button.click()
     
     def get_products(self):
         driver = self.driver
@@ -90,12 +91,13 @@ class StockChecker:
         self.products.clear()
         
         for product in product_elements:
-            # Extract product title
+            # Extract product title and url
             title_element = product.find_element(By.CSS_SELECTOR, "a")
             title = title_element.get_attribute("title")
+            url = title_element.get_attribute("href")
             
-            if title in EXCLUDED_PRODUCTS:
-                continue
+            # if title in EXCLUDED_PRODUCTS:
+            #     continue
             
             # Check stock status
             status = "❌ Out of Stock"
@@ -104,7 +106,7 @@ class StockChecker:
                 self.stock_count += 1
                 
             # Add product to the product list
-            self.products.append(Product(title, status))
+            self.products.append(Product(title, status, url))
 
     def format_message(self):
         formatted_time = time.strftime("%a, %d %b %I:%M %p", time.localtime())
@@ -113,7 +115,7 @@ class StockChecker:
         
         for product in self.products:
             if product.status == "✅ In Stock":
-                message += f"🍵 Name: {product.title}\n📦 Status: {product.status}\n\n"
+                message += f"🍵 Name: {product.title}\n📦 Status: {product.status}\n Link: {product.url}\n\n"
         return message
     
     def quit(self):
@@ -148,12 +150,12 @@ def japan_business_hours():
     return start_time <= now_in_japan <= end_time
 
 def main():
-    bot = TelegramBot()
+   # bot = TelegramBot()
     checker = StockChecker()
     checker.login()
     
     # Send message to user via Telegram
-    asyncio.run(bot.send_message("The bot has successfully started"))
+    #asyncio.run(bot.send_message("The bot has successfully started"))
     logging.info("Bot is up and running")
     
     try:
@@ -167,6 +169,7 @@ def main():
                 # Only message the user if at least one item is in stock,
                 # else don't send a message
                 if checker.stock_count > 0:
+                    bot = TelegramBot()
                     message = checker.format_message()
                     # Send message to user via Telegram
                     asyncio.run(bot.send_message(message))
