@@ -92,9 +92,12 @@ Before running the script, ensure you have the following:
 
 ## 🚀 Further Improvements (In Order)
 
+- IF THE BOT IS ON FOR LONG ENOUGH. IT GETS SIGNED OUT
+
 - [ ] Fix issue with telegram bot instantiation in while loop. errors if it is outside. 
-- [ ] Run it on Windows PC 24/7.
 - [ ] **Clean up code and create new repo**: Showcase the project with good comments and documentation.
+
+- Add hash map or other ds to store product variants in product
   
 - [ ] **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
 - [ ] **Mutliprocessing**: One process for stock updates, another for adding to cart and buying (BuyProduct class).
