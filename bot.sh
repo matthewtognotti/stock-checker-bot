@@ -1,0 +1,35 @@
+function matcha-bot() {
+  # Navigate to the directory containing the project
+  cd ~/Desktop/Programming\ Projects\ 2025/python_web_bot || { echo "Directory not found"; return 1; }
+
+  # Activate the virtual environment
+  if [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+  else
+    echo "Virtual environment not found"
+    return 1
+  fi
+
+  # Run the Python script
+  python3 main.py || { echo "Failed to run main.py"; return 1; }
+}
+
+export -f matcha-bot
+
+function matcha-login() {
+  # Navigate to the directory containing the project
+  cd ~/Desktop/Programming\ Projects\ 2025/python_web_bot || { echo "Directory not found"; return 1; }
+
+  # Activate the virtual environment
+  if [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+  else
+    echo "Virtual environment not found"
+    return 1
+  fi
+
+  # Run the Python script
+  python3 login.py || { echo "Failed to run login.py"; return 1; }
+}
+
+export -f matcha-login

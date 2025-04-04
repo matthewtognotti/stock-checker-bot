@@ -27,10 +27,12 @@ if not all([LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_
     raise ValueError("Missing environment variables. Check your .env file.")
 
 class Product:
-    def __init__(self, title, status, url):
+    def __init__(self, title, status, url, variants):
         self.title = title
         self.status = status
         self.url = url
+        self.variants = []
+        
 
 class StockChecker:
     def __init__(self):
@@ -77,6 +79,46 @@ class StockChecker:
         self.scroll_into_view(login_button)
         login_button.click()
     
+    # Check if logged in
+    def is_logged_in(self) -> bool:
+        pass
+    
+
+    # Given the proudcts URL, return the product variants 
+    # that are in stock in a list of tuples with the prices
+    # List of tuples chosen over ordered hash map because we need to iterate
+    # over the variants and do not need fast look up, insertions, deletions. 
+    def get_in_stock_variants(self, url : str) -> list:
+        
+        # Open the product page
+        self.driver.get(url)
+
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "product-form-row")))
+    
+        # Locate all product variants
+        variants = self.driver.find_elements(By.CLASS_NAME, "product-form-row")
+
+        in_stock_variants = []
+
+        # Iterate through each variant
+        for variant in variants:
+            # Check if the variant is in stock
+            stock_status = variant.find_element(By.TAG_NAME, "p")  # Locate the stock status element
+        
+            if "in-stock" in stock_status.get_attribute("class"):  # Check if the text contains "In stock"
+                # Extract size
+                size = variant.find_element(By.CLASS_NAME, "pa-size").find_element(By.TAG_NAME, "dd").text.strip()
+                # Extract price (USD)
+                price = variant.find_element(By.CLASS_NAME, "woocs_price_USD").text.strip()
+                # Append the variant details as a tuple
+                in_stock_variants.append((size, price))
+
+        # RETURN TO THE MAIN PAGE BUG HERE TODO: FIX THIS
+        self.driver.get(PRODUCT_PAGE)
+        
+        return in_stock_variants
+    
+    
     def get_products(self):
         driver = self.driver
         # Keep track of the number of in stock items
@@ -96,32 +138,41 @@ class StockChecker:
             title = title_element.get_attribute("title")
             url = title_element.get_attribute("href")
             
-            if title in EXCLUDED_PRODUCTS:
-                continue
+            # if title in EXCLUDED_PRODUCTS:
+            #     continue
             
             # Check stock status
             status = "❌ Out of Stock"
+            variants = []
             if "instock" in product.get_attribute("class"):
                 status = "✅ In Stock"
+                variants = self.get_in_stock_variants(url)
                 self.stock_count += 1
                 
             # Add product to the product list
-            self.products.append(Product(title, status, url))
-
+            self.products.append(Product(title, status, url, variants))
+    
+    
     def format_message(self):
         formatted_time = time.strftime("%a, %d %b %I:%M %p", time.localtime())
         message = COMPANY_NAME + " Stock Check\n\n"
         message += f"🕜 Last Checked: {formatted_time}\n\n"
         
         for product in self.products:
+            
             if product.status == "✅ In Stock":
                 message += f"🍵 Name: {product.title}\n📦 Status: {product.status}\n Link: {product.url}\n\n"
+                
+                for size, price in self.products.variants:
+                    message += f"Size: {size} --- Price{price}\n"
+                    
         return message
     
     def quit(self):
         # Close the driver/browser
         self.driver.quit()
-            
+        
+                    
 class TelegramBot:
     def __init__(self):
         self.bot = Bot(token=TELEGRAM_TOKEN)
@@ -149,27 +200,34 @@ def japan_business_hours():
     # Check if the current time is within business hours
     return start_time <= now_in_japan <= end_time
 
+
 def main():
-   # bot = TelegramBot()
+    bot = TelegramBot()
     checker = StockChecker()
     checker.login()
     
     # Send message to user via Telegram
-    #asyncio.run(bot.send_message("The bot has successfully started"))
-    logging.info("Bot is up and running")
+    asyncio.run(bot.send_message("The bot has successfully started"))
+    logging.info("The Bot is up and running")
     
     try:
         while True:
             if japan_business_hours():
+            
                 # Refresh the page to update the stock data
                 checker.driver.refresh()
+                
+                # Ensure the bot is logged in becuase it gets auto logged out by the site
+                # after 24 hours
+                # if checker.is_logged_in() is False:
+                #     checker.login()
+                
                 # Scrape product data
                 checker.get_products()
                 
                 # Only message the user if at least one item is in stock,
                 # else don't send a message
                 if checker.stock_count > 0:
-                    bot = TelegramBot()
                     message = checker.format_message()
                     # Send message to user via Telegram
                     asyncio.run(bot.send_message(message))
@@ -178,8 +236,14 @@ def main():
             
     except KeyboardInterrupt:
         checker.quit()
+        asyncio.run(bot.send_message("The bot has been shut off..."))
         logging.info("Process interrupted by Keyboard. Closing WebDriver.")
         
     
 if __name__ == "__main__":
     main()
+    
+    
+    
+    
+    
