@@ -97,12 +97,10 @@ Before running the script, ensure you have the following:
 Now
 --
 1. Fix issue with telegram bot instantiation in while loop. errors if it is outside. 
-2. Remove Japan Hours?
-3. Issue where recaptcha is not required, the bot fails
-4. Put code through windsurf to make it production grade. Add try and except blocks for errors. Good comments. Readme.
-5. Add Error Handling: Implement robust error handling for login failures, network issues, and Telegram API errors.
-6. Create improved list of improvements below (should these be issues in github?)
-7. Create new repo
+2. Put code through windsurf to make it production grade. Add try and except blocks for errors. Good comments. Readme.
+3. Add Error Handling: Implement robust error handling for login failures, network issues, and Telegram API errors.
+4. Create improved list of improvements below (should these be issues in github?)
+5. Create new repo
 
 
 

@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from os import getenv
 import logging
 
-# Environment variables and secrets 
+
 load_dotenv()
 LOGIN_PAGE = getenv("LOGIN_PAGE")
 EMAIL = getenv("EMAIL")
@@ -24,8 +24,10 @@ TELEGRAM_TOKEN = getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = getenv("TELEGRAM_CHAT_ID")
 COMPANY_NAME = getenv("COMPANY_NAME")
 
+
 if not all([LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, COMPANY_NAME]):
     raise ValueError("Missing environment variables. Check your .env file.")
+
 
 class Product:
     def __init__(self, title, status, url, variants):
@@ -74,8 +76,7 @@ class StockChecker:
         field_input = self.driver.find_element(By.NAME, field_name)
         self._scroll_into_view(field_input)
         field_input.send_keys(value)
-        
-        
+           
     def login(self) -> None:
         driver = self.driver
         
@@ -94,21 +95,27 @@ class StockChecker:
         self._scroll_into_view(login_button)
         login_button.click()
     
-    # Check if logged in
     def is_logged_in(self) -> bool:
+        """ TODO: Implement this """
         pass
     
-
     def get_in_stock_variants(self, url : str) -> list:
 
-        """Given the proudcts URL, return the product variants 
+        """
+        Given the proudct page URL, return the product variants 
         that are in stock in a list of tuples with the prices
-        List of tuples chosen over ordered hash map because we need to iterate
-        over the variants and do not need fast look up, insertions, deletions. """
-    
         
-        # Open the product page
-        self.driver.get(url)
+        List of tuples chosen over ordered hash map because we need to iterate
+        over the variants and do not need fast look up, insertions, deletions. 
+        """
+        
+        # Open the product page in a new tab (window)
+        product_window = self.driver.current_window_handle
+        self.driver.execute_script(f"window.open('{url}', '_blank');")
+        
+        # Switch to the new window
+        self.driver.switch_to.window(self.driver.window_handles[1])
+        
 
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "product-form-row")))
     
@@ -122,19 +129,26 @@ class StockChecker:
             # Check if the variant is in stock
             stock_status = variant.find_element(By.TAG_NAME, "p")  # Locate the stock status element
         
-            if "in-stock" in stock_status.get_attribute("class"):  # Check if the text contains "In stock"
+            if "in-stock" in stock_status.get_attribute("class"): 
                 # Extract size
                 size = variant.find_element(By.CLASS_NAME, "pa-size").find_element(By.TAG_NAME, "dd").text.strip()
                 # Extract price (USD)
-                price = variant.find_element(By.CLASS_NAME, "woocs_price_USD").text.strip()
+               # us_price = variant.find_element(By.CLASS_NAME, "woocs_price_USD")
+                currency_symbol = variant.find_element(By.CLASS_NAME, "woocommerce-Price-currencySymbol").text
+                whole_price = variant.find_element(By.CLASS_NAME, "woocommerce-Price-amount").text
+                decimal_price = variant.find_element(By.CLASS_NAME, "woocommerce-Price-decimal").text       
+               
+                price = whole_price + decimal_price
+                print(price)
+                
                 # Append the variant details as a tuple
                 in_stock_variants.append((size, price))
 
-        # RETURN TO THE MAIN PAGE BUG HERE TODO: FIX THIS
-        self.driver.get(PRODUCT_PAGE)
-        
+        # Close the current window and switch back to the product window
+        self.driver.close()
+        self.driver.switch_to.window(product_window)
+        #print(in_stock_variants)
         return in_stock_variants
-    
     
     def get_products(self) -> None:
         driver = self.driver
@@ -143,7 +157,6 @@ class StockChecker:
         
         # Now go to the product page
         driver.get(PRODUCT_PAGE)
-
         product_elements = driver.find_elements(By.CSS_SELECTOR, "li.product")
         
         # Clear old data from last update
@@ -168,7 +181,7 @@ class StockChecker:
                 
             # Add product to the product list
             self.products.append(Product(title, status, url, variants))
-    
+            
     
     def format_message(self) -> str:
         formatted_time = time.strftime("%a, %d %b %I:%M %p", time.localtime())
@@ -180,8 +193,10 @@ class StockChecker:
             if product.status == "✅ In Stock":
                 message += f"🍵 Name: {product.title}\n📦 Status: {product.status}\n Link: {product.url}\n\n"
                 
-                for size, price in self.products.variants:
-                    message += f"Size: {size} --- Price{price}\n"
+                print(product.variants)
+                
+                for variant in product.variants:
+                    message += f"Size: {variant[0]} --- Price{variant[1]}\n"
                     
         return message
     
@@ -198,57 +213,38 @@ class TelegramBot:
         # Await the coroutine to properly send the message
         await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
-# Only send stock updates during 9am to 5:30pm (Japan Time) during weekdays 
-def japan_business_hours() -> bool:
-    # Define the Japan timezone
-    japan_tz = pytz.timezone('Asia/Tokyo')
-    
-    # Get the current time in Japan
-    now_in_japan = datetime.now(japan_tz)
-    
-    # Check if it's a weekday (Monday = 0, Sunday = 6)
-    if now_in_japan.weekday() >= 5:  # Saturday (5) or Sunday (6)
-        return False
-    
-    # Define business hours (9:00 AM to 5:30 PM)
-    start_time = now_in_japan.replace(hour=9, minute=0, second=0, microsecond=0)
-    end_time = now_in_japan.replace(hour=17, minute=30, second=0, microsecond=0)
-    
-    # Check if the current time is within business hours
-    return start_time <= now_in_japan <= end_time
-
 
 def main():
-    bot = TelegramBot()
+    # bot = TelegramBot()
     checker = StockChecker()
     checker.login()
     
     # Send message to user via Telegram
-    asyncio.run(bot.send_message("The bot has successfully started"))
+    # asyncio.run(bot.send_message("The bot has successfully started"))
     logging.info("The Bot is up and running")
     
     try:
         while True:
-            if japan_business_hours():
             
-                # Refresh the page to update the stock data
-                checker.driver.refresh()
-                
-                # Ensure the bot is logged in becuase it gets auto logged out by the site
-                # after 24 hours
-                # if checker.is_logged_in() is False:
-                #     checker.login()
-                
-                # Scrape product data
-                checker.get_products()
-                
-                # Only message the user if at least one item is in stock,
-                # else don't send a message
-                if checker.stock_count > 0:
-                    message = checker.format_message()
-                    # Send message to user via Telegram
-                    asyncio.run(bot.send_message(message))
+            # Refresh the page to update the stock data
+            checker.driver.refresh()
             
+            # Ensure the bot is logged in becuase it gets auto logged out by the site
+            # after 24 hours
+            # if checker.is_logged_in() is False:
+            #     checker.login()
+            
+            # Scrape product data
+            checker.get_products()
+            
+            # Only message the user if at least one item is in stock,
+            # else don't send a message
+            if checker.stock_count > 0:
+                message = checker.format_message()
+                # Send message to user via Telegram
+                bot = TelegramBot()
+                asyncio.run(bot.send_message(message))
+        
             time.sleep(60) # Sleep for 1 minute
             
     except KeyboardInterrupt:
