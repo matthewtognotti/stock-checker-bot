@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import time
 from datetime import datetime
 import pytz
@@ -42,41 +43,55 @@ class StockChecker:
         self.stock_count = 0
         
     # Use JavaScript to scroll the element into view
-    def scroll_into_view(self, element):
+    def _scroll_into_view(self, element) -> None:
+        """ Scroll to an element on the page using Javascript """
         self.driver.execute_script("arguments[0].scrollIntoView();", element)
+
+    def _handle_recaptcha(self) -> None:
+        """ 
+        Sometimes the reCAPTCHA iframe isn't present, so WebDriverWait throws an exception. 
         
-    def login(self):
+        This bypasses the reCaptcha everytime, so we don't have to solve it
+        """
+        try:
+            # Wait for the iframe to be present and switch to it
+            iframe = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[title='reCAPTCHA']")))
+            self.driver.switch_to.frame(iframe)
+            # Wait for the reCAPTCHA checkbox to be clickable and click it
+            recaptcha_checkbox = WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border")))
+            self._scroll_into_view(recaptcha_checkbox)
+            recaptcha_checkbox.click()
+            
+        except TimeoutException:
+            # reCAPTCHA not present; skipping
+            logging.debug("reCAPTCHA not found; continuing without interaction.")
+            pass
+        
+        self.driver.switch_to.default_content()
+        
+    def _input_field(self, field_name, value):
+        """Helper function to find a field, scroll into view, and input a value"""
+        field_input = self.driver.find_element(By.NAME, field_name)
+        self._scroll_into_view(field_input)
+        field_input.send_keys(value)
+        
+        
+    def login(self) -> None:
         driver = self.driver
         
         # Open the log in page
         driver.get(LOGIN_PAGE)
         
-        # Find the email address input and input the email
-        email_input = driver.find_element(By.NAME, "username")
-        self.scroll_into_view(email_input)
-        email_input.send_keys(EMAIL)
+        # Input the email
+        self._input_field("username", EMAIL)
+        # Input Password
+        self._input_field("password", PASSWORD)
         
-        # Find the password input and input the password
-        password_input = driver.find_element(By.NAME, "password")
-        self.scroll_into_view(password_input)
-        password_input.send_keys(PASSWORD)
-        
-        # Wait for the iframe to be present and switch to it
-        iframe = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[title='reCAPTCHA']"))
-        )
-        driver.switch_to.frame(iframe)
-        # Wait for the reCAPTCHA checkbox to be clickable and click it
-        recaptcha_checkbox = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border"))
-        )
-        self.scroll_into_view(recaptcha_checkbox)
-        recaptcha_checkbox.click()
-        
-        # Switch back to the main content and click the login button
-        driver.switch_to.default_content()
+        self._handle_recaptcha()
+    
+        # Find and click the log in button to finsh signing in
         login_button = driver.find_element(By.NAME, "login")
-        self.scroll_into_view(login_button)
+        self._scroll_into_view(login_button)
         login_button.click()
     
     # Check if logged in
@@ -84,11 +99,13 @@ class StockChecker:
         pass
     
 
-    # Given the proudcts URL, return the product variants 
-    # that are in stock in a list of tuples with the prices
-    # List of tuples chosen over ordered hash map because we need to iterate
-    # over the variants and do not need fast look up, insertions, deletions. 
     def get_in_stock_variants(self, url : str) -> list:
+
+        """Given the proudcts URL, return the product variants 
+        that are in stock in a list of tuples with the prices
+        List of tuples chosen over ordered hash map because we need to iterate
+        over the variants and do not need fast look up, insertions, deletions. """
+    
         
         # Open the product page
         self.driver.get(url)
@@ -119,7 +136,7 @@ class StockChecker:
         return in_stock_variants
     
     
-    def get_products(self):
+    def get_products(self) -> None:
         driver = self.driver
         # Keep track of the number of in stock items
         self.stock_count = 0
@@ -153,7 +170,7 @@ class StockChecker:
             self.products.append(Product(title, status, url, variants))
     
     
-    def format_message(self):
+    def format_message(self) -> str:
         formatted_time = time.strftime("%a, %d %b %I:%M %p", time.localtime())
         message = COMPANY_NAME + " Stock Check\n\n"
         message += f"🕜 Last Checked: {formatted_time}\n\n"
@@ -168,7 +185,7 @@ class StockChecker:
                     
         return message
     
-    def quit(self):
+    def quit(self) -> None:
         # Close the driver/browser
         self.driver.quit()
         
@@ -177,12 +194,12 @@ class TelegramBot:
     def __init__(self):
         self.bot = Bot(token=TELEGRAM_TOKEN)
 
-    async def send_message(self, message):
+    async def send_message(self, message) -> None:
         # Await the coroutine to properly send the message
         await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
 # Only send stock updates during 9am to 5:30pm (Japan Time) during weekdays 
-def japan_business_hours():
+def japan_business_hours() -> bool:
     # Define the Japan timezone
     japan_tz = pytz.timezone('Asia/Tokyo')
     
