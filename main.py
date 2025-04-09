@@ -34,7 +34,7 @@ class Product:
         self.title = title
         self.status = status
         self.url = url
-        self.variants = []
+        self.variants = variants
         
 
 class StockChecker:
@@ -116,7 +116,6 @@ class StockChecker:
         # Switch to the new window
         self.driver.switch_to.window(self.driver.window_handles[1])
         
-
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "product-form-row")))
     
         # Locate all product variants
@@ -139,15 +138,13 @@ class StockChecker:
                 decimal_price = variant.find_element(By.CLASS_NAME, "woocommerce-Price-decimal").text       
                
                 price = whole_price + decimal_price
-                print(price)
-                
+                                
                 # Append the variant details as a tuple
                 in_stock_variants.append((size, price))
 
         # Close the current window and switch back to the product window
         self.driver.close()
         self.driver.switch_to.window(product_window)
-        #print(in_stock_variants)
         return in_stock_variants
     
     def get_products(self) -> None:
@@ -172,10 +169,10 @@ class StockChecker:
             #     continue
             
             # Check stock status
-            status = "❌ Out of Stock"
+            status = "Out of Stock"
             variants = []
             if "instock" in product.get_attribute("class"):
-                status = "✅ In Stock"
+                status = "In Stock"
                 variants = self.get_in_stock_variants(url)
                 self.stock_count += 1
                 
@@ -189,19 +186,19 @@ class StockChecker:
         message += f"🕜 Last Checked: {formatted_time}\n\n"
         
         for product in self.products:
-            
-            if product.status == "✅ In Stock":
-                message += f"🍵 Name: {product.title}\n📦 Status: {product.status}\n Link: {product.url}\n\n"
+
+            if product.status == "In Stock":
+                message += f"🍵 Name: {product.title}\n✅ Status: {product.status}\n"
                 
-                print(product.variants)
+                for size, price in product.variants:
+                    message += f"➡️ {size}: {price}\n"
                 
-                for variant in product.variants:
-                    message += f"Size: {variant[0]} --- Price{variant[1]}\n"
+                message += f"🔗 Link: {product.url}\n\n"
                     
         return message
     
     def quit(self) -> None:
-        # Close the driver/browser
+        """ Close the driver/browser """
         self.driver.quit()
         
                     
@@ -237,8 +234,7 @@ def main():
             # Scrape product data
             checker.get_products()
             
-            # Only message the user if at least one item is in stock,
-            # else don't send a message
+            # Only message the user if at least one item is in stock
             if checker.stock_count > 0:
                 message = checker.format_message()
                 # Send message to user via Telegram
@@ -255,8 +251,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-    
-    
-    
-    
-    
