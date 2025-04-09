@@ -13,7 +13,9 @@ This script automates the process of checking product stock on a website that re
   - [🧩 Code Structure](#-code-structure)
   - [🎨 Customization](#-customization)
   - [🛠 Troubleshooting](#-troubleshooting)
-  - [🚀 Further Improvements (In Order)](#-further-improvements-in-order)
+  - [🚀 Further Improvements](#-further-improvements)
+  - [Now](#now)
+  - [Future](#future)
   - [📜 License](#-license)
 
 ---
@@ -90,25 +92,31 @@ Before running the script, ensure you have the following:
 
 ---
 
-## 🚀 Further Improvements (In Order)
+## 🚀 Further Improvements
 
-1. Issue where recaptcha is not required, the bot fails
-2. IF THE BOT IS ON FOR LONG ENOUGH. IT GETS SIGNED OUT. FUnction to check? 
-3. Fix issue with telegram bot instantiation in while loop. errors if it is outside. 
-4. **Clean up code and create new repo**: Showcase the project with good comments and documentation.
+Now
+--
+1. Fix issue with telegram bot instantiation in while loop. errors if it is outside. 
+2. Remove Japan Hours?
+3. Issue where recaptcha is not required, the bot fails
+4. Put code through windsurf to make it production grade. Add try and except blocks for errors. Good comments. Readme.
+5. Add Error Handling: Implement robust error handling for login failures, network issues, and Telegram API errors.
+6. Create improved list of improvements below (should these be issues in github?)
+7. Create new repo
 
-5. **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
-6. **Add Logging**: Implement a logging system to track bot activity, errors, and stock updates.
-7. **Add Error Handling**: Implement robust error handling for login failures, network issues, and Telegram API errors.
-8. Send user a message at the start of the japan hours. "The time in Japan is 9:00 AM. The bot has started checking for stock updates!"
-9. Somehow detect if the bot gets logged out and tell the user "Error: The bot has been logged out!"
 
-10. Add hash map or other ds (use array of tuples) to store product variants in product and display to the user. this may need to be done with multiprocessing so that we don't get stuck loading on a single page. Additionally, research more about the selenium API (Selenium vs Selenium Base?). There may be a built in way to do multiprocessing and I need to fully understand the API to make this bot quick and reliable. Or use multiple tabs in seleniunm. Also experiement with going headless. 
 
-11. **Allow user to request updates**: Enable users to send `/update` and receive a table with all in-stock products or a "no products in stock" message.
-12. **Mutliprocessing**: One process for stock updates, another for adding to cart and buying (BuyProduct class).
-13. **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
-14. Run on AWS Lambda or Google Cloud Functions.
+Future
+--
+8. **Add Logging**: Implement a logging system to track bot activity, errors, and stock updates.
+9. Detect if the bot gets logged out and sign back in
+10. Also read time out error from URLlib
+11. **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
+12. Add hash map or other ds (use array of tuples) to store product variants in product and display to the user. this may need to be done with multiprocessing so that we don't get stuck loading on a single page. Additionally, research more about the selenium API (Selenium vs Selenium Base?). There may be a built in way to do multiprocessing and I need to fully understand the API to make this bot quick and reliable. Or use multiple tabs in seleniunm. Also experiement with going headless. 
+13. **Allow user to request updates**: Enable users to send `/update` and receive a table with all in-stock products or a "no products in stock" message.
+14. **Mutliprocessing**: One process for stock updates, another for adding to cart and buying (BuyProduct class).
+15. **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
+16. Run on AWS Lambda or Google Cloud Functions.
 
 ---
 

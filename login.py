@@ -8,7 +8,7 @@ from os import getenv
 import time
 
 
-''' For logging into the site from terminal using a shell script (matcha-bot) for convenience'''
+''' For logging into the site from terminal using a shell script for convenience'''
 
 # Environment variables and secrets 
 load_dotenv()
