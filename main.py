@@ -165,8 +165,8 @@ class StockChecker:
             title = title_element.get_attribute("title")
             url = title_element.get_attribute("href")
             
-            # if title in EXCLUDED_PRODUCTS:
-            #     continue
+            if title in EXCLUDED_PRODUCTS:
+                continue
             
             # Check stock status
             status = "Out of Stock"
