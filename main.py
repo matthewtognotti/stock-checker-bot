@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException
 import time
 from datetime import datetime
 import pytz
@@ -57,10 +58,10 @@ class StockChecker:
         """
         try:
             # Wait for the iframe to be present and switch to it
-            iframe = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[title='reCAPTCHA']")))
+            iframe = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[title='reCAPTCHA']")))
             self.driver.switch_to.frame(iframe)
             # Wait for the reCAPTCHA checkbox to be clickable and click it
-            recaptcha_checkbox = WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border")))
+            recaptcha_checkbox = WebDriverWait(self.driver, 2).until(EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border")))
             self._scroll_into_view(recaptcha_checkbox)
             recaptcha_checkbox.click()
             
@@ -94,10 +95,25 @@ class StockChecker:
         login_button = driver.find_element(By.NAME, "login")
         self._scroll_into_view(login_button)
         login_button.click()
+        time.sleep(2) #TODO: remove this sleep
+        driver.get(PRODUCT_PAGE)
     
     def is_logged_in(self) -> bool:
-        """ TODO: Implement this """
-        pass
+        """
+            Checks if the bot is currently logged
+            Returns True if logged in, False otherwise.
+        """
+        # Find the first product element
+        # If it is neither in stock or out of stock then the bot is signed out
+        try:
+            product = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li.product")))
+            class_name = product.get_attribute("class")
+            return "instock" in class_name or "outofstock" in class_name
+        
+        except NoSuchElementException:
+            return False
+            
+ 
     
     def get_in_stock_variants(self, url : str) -> list:
 
@@ -152,8 +168,6 @@ class StockChecker:
         # Keep track of the number of in stock items
         self.stock_count = 0
         
-        # Now go to the product page
-        driver.get(PRODUCT_PAGE)
         product_elements = driver.find_elements(By.CSS_SELECTOR, "li.product")
         
         # Clear old data from last update
@@ -226,10 +240,9 @@ def main():
             # Refresh the page to update the stock data
             checker.driver.refresh()
             
-            # Ensure the bot is logged in becuase it gets auto logged out by the site
-            # after 24 hours
-            # if checker.is_logged_in() is False:
-            #     checker.login()
+            # Ensure the bot is logged in becuase it gets auto logged out by the site after 24 hours
+            if checker.is_logged_in() is False:
+                checker.login()
             
             # Scrape product data
             checker.get_products()
