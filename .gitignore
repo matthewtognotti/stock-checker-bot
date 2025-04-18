@@ -2,3 +2,5 @@
 constants.py
 __pycache__/
 venv
+setttings.json
+.vscode

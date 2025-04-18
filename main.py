@@ -1,3 +1,11 @@
+import time
+import asyncio
+import logging
+from datetime import datetime
+from telegram import Bot
+from constants import EXCLUDED_PRODUCTS
+from dotenv import load_dotenv
+from os import getenv
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -5,16 +13,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
-import time
-from datetime import datetime
-import pytz
-import asyncio
-from telegram import Bot
-from constants import EXCLUDED_PRODUCTS
-from dotenv import load_dotenv
-from os import getenv
-import logging
-
 
 load_dotenv()
 LOGIN_PAGE = getenv("LOGIN_PAGE")
@@ -24,7 +22,6 @@ PRODUCT_PAGE = getenv("PRODUCT_PAGE")
 TELEGRAM_TOKEN = getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = getenv("TELEGRAM_CHAT_ID")
 COMPANY_NAME = getenv("COMPANY_NAME")
-
 
 if not all([LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, COMPANY_NAME]):
     raise ValueError("Missing environment variables. Check your .env file.")
@@ -97,6 +94,7 @@ class StockChecker:
         login_button.click()
         time.sleep(2) #TODO: remove this sleep
         driver.get(PRODUCT_PAGE)
+        logging.info("The bot has logged in")
     
     def is_logged_in(self) -> bool:
         """
@@ -228,11 +226,11 @@ class TelegramBot:
 def main():
     # bot = TelegramBot()
     checker = StockChecker()
+    logging.info("The Bot is up and running")
     checker.login()
     
     # Send message to user via Telegram
     # asyncio.run(bot.send_message("The bot has successfully started"))
-    logging.info("The Bot is up and running")
     
     try:
         while True:
@@ -240,8 +238,9 @@ def main():
             # Refresh the page to update the stock data
             checker.driver.refresh()
             
-            # Ensure the bot is logged in becuase it gets auto logged out by the site after 24 hours
+            # Ensure the bot is logged in; gets logged out after some time
             if checker.is_logged_in() is False:
+                logging.info("Bot was automatically logged out by Website")
                 checker.login()
             
             # Scrape product data
@@ -253,6 +252,7 @@ def main():
                 # Send message to user via Telegram
                 bot = TelegramBot()
                 asyncio.run(bot.send_message(message))
+                logging.info(f"Sending message to user with data: {message}")
         
             time.sleep(60) # Sleep for 1 minute
             
