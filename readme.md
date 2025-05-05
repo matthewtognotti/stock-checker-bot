@@ -1,6 +1,6 @@
 # 🛒 Stock Checker Bot with Telegram Notifications
 
-This script automates the process of checking product stock on a website that requires login to view stock data. If any items are in stock, the bot sends a notification of the products in stock to the user via Telegram. The bot operates during specified business hours (9:00 AM to 5:30 PM Japan Time) on weekdays.
+This script automates the process of checking product stock on a website that requires login and reCAPTCHA to check if a product is in stock. Once a product is in stock, the bot sends a Telegram message to the user with a link and all product variants that are in stock.
 
 ---
 
@@ -22,21 +22,20 @@ This script automates the process of checking product stock on a website that re
 
 ## ✨ Features
 
-- **Login Automation**: Logs into the website using Selenium to access stock data.
-- **Stock Monitoring**: Scrapes product data and checks stock status every minute.
-- **Telegram Notifications**: Sends a message to the user via Telegram if any items are in stock.
-- **Business Hours Check**: Only operates during specified business hours (9:00 AM to 5:30 PM Japan Time) on weekdays.
-
+- **Login Automation and reCATPCHA Bypass**: Logs into the website using Selenium to access stock data and bypasses the reCAPTCHA.
+- **Stock Monitoring**: Scrapes product data and checks stock status every minute. Automatically logs back when bot detects it has been logged out by the site. 
+- **Telegram Notifications**: Sends a message to the user via Telegram when products are in stock.
+- 
 ---
 
 ## 📋 Prerequisites
 
 Before running the script, ensure you have the following:
 
-1. **Python 3.x**: The script is written in Python.
+1. **Python 3.13**: The script is written in Python.
 2. **Telegram Bot**: Create a Telegram bot and obtain the bot token and chat ID.
 3. **ChromeDriver**: Download and install ChromeDriver that matches your Chrome browser version.
-4. **Environment Variables**: Set up the required environment variables in a `.env` file.
+4. **Environment Variables**: Set up the required environment variables in a `.env` file. An example .env is provided.
 
 ---
 
