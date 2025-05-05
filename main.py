@@ -7,7 +7,6 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 import time
 from datetime import datetime
-import pytz
 import asyncio
 from telegram import Bot
 from constants import EXCLUDED_PRODUCTS
@@ -219,14 +218,12 @@ class TelegramBot:
         await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
 
-def main():
-    # bot = TelegramBot()
+async def main():
     checker = StockChecker()
     checker.login()
-    
-    # Send message to user via Telegram
-    # asyncio.run(bot.send_message("The bot has successfully started"))
-    logging.info("The Bot is up and running")
+    bot = TelegramBot()
+    await bot.send_message("The bot has started...")
+    logging.info("The Bot has started")
     
     try:
         while True:
@@ -244,17 +241,15 @@ def main():
             # Only message the user if at least one item is in stock
             if checker.stock_count > 0:
                 message = checker.format_message()
-                # Send message to user via Telegram
-                bot = TelegramBot()
-                asyncio.run(bot.send_message(message))
-        
-            time.sleep(60) # Sleep for 1 minute
+                await bot.send_message(message)
+                        
+            await asyncio.sleep(60)
             
     except KeyboardInterrupt:
         checker.quit()
-        asyncio.run(bot.send_message("The bot has been shut off..."))
+        await bot.send_message("The bot has been shut off...")
         logging.info("Process interrupted by Keyboard. Closing WebDriver.")
         
     
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

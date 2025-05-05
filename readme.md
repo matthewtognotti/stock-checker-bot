@@ -32,10 +32,9 @@ This script automates the process of checking product stock on a website that re
 
 Before running the script, ensure you have the following:
 
-1. **Python 3.13**: The script is written in Python.
+1. **Python 3.11 or above**: The script is written in Python.
 2. **Telegram Bot**: Create a Telegram bot and obtain the bot token and chat ID.
 3. **ChromeDriver**: Download and install ChromeDriver that matches your Chrome browser version.
-4. **Environment Variables**: Set up the required environment variables in a `.env` file. An example .env is provided.
 
 ---
 
@@ -46,7 +45,7 @@ Before running the script, ensure you have the following:
     git clone https://github.com/matthewtognotti/stock-checker-bot
     cd stock-checker-bot
     ```
-2. ** Create your Virtual Environemnt (Optional)**:
+2. ** Create your Virtual Environemnt (Recommended)**:
     ```bash
     python3 -m venv venv
     source venv/bin/activate
@@ -55,12 +54,9 @@ Before running the script, ensure you have the following:
     ```bash
     pip install -r requirements.txt
     ```
-4. **Set Up Environment Variables**:
-    Create a `.env` file in the root directory and add the following variables:
-    ```env
-    TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-    TELEGRAM_CHAT_ID=your_telegram_chat_id
-    ```
+4. **Set Up Environment Variables**
+    Create a `.env` file in the root directory follwing `example .env` provided.
+
 5. **Run the Script**:
     ```bash
     python3 main.py
@@ -70,17 +66,16 @@ Before running the script, ensure you have the following:
 
 ## 🧩 Code Structure
 
-- **🛒 StockChecker Class**: Handles the login, product data scraping, and stock checking.
-- **🤖 TelegramBot Class**: Manages sending messages via Telegram.
+- **🛒 StockChecker Class**: Handles the login and product data scraping.
+- **🤖 TelegramBot Class**: Manages sending messages via the Telegram API.
 - **🔄 main Function**: Orchestrates the stock checking and notification process.
 
 ---
 
 ## 🎨 Customization
 
-- **Excluded Products**: Add product titles to the `EXCLUDED_PRODUCTS` list in `constants.py` to exclude them from stock checks.
-- **Business Hours**: Modify the `japan_business_hours` function to adjust the operating hours.
-
+- **Excluded Products**: Add product titles to an `EXCLUDED_PRODUCTS` list to exclude them from stock checks.
+  
 ---
 
 ## 🛠 Troubleshooting
@@ -102,18 +97,22 @@ Now
 5. Create new repo
 
 
+- Remove duplicate messages (how does that affect exlcuded products?)
+- Auto buy when in stock? Only once a day? 
+- Unit tests w/ site HTML for purchasing products
+- Docker File -> AWS
+- Raspberry Pi w/ react front end display. 
+
 
 Future
 --
-8. **Add Logging**: Implement a logging system to track bot activity, errors, and stock updates.
-9. Detect if the bot gets logged out and sign back in
-10. Also read time out error from URLlib
-11. **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
-12. Add hash map or other ds (use array of tuples) to store product variants in product and display to the user. this may need to be done with multiprocessing so that we don't get stuck loading on a single page. Additionally, research more about the selenium API (Selenium vs Selenium Base?). There may be a built in way to do multiprocessing and I need to fully understand the API to make this bot quick and reliable. Or use multiple tabs in seleniunm. Also experiement with going headless. 
-13. **Allow user to request updates**: Enable users to send `/update` and receive a table with all in-stock products or a "no products in stock" message.
-14. **Mutliprocessing**: One process for stock updates, another for adding to cart and buying (BuyProduct class).
-15. **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
-16. Run on AWS Lambda or Google Cloud Functions.
+1. **Add Logging**: Implement a logging system to track bot activity, errors, and stock updates.
+2.  Also read time out error from URLlib
+3.  **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
+4.  Add hash map or other ds (use array of tuples) to store product variants in product and display to the user. this may need to be done with multiprocessing so that we don't get stuck loading on a single page. Additionally, research more about the selenium API (Selenium vs Selenium Base?). There may be a built in way to do multiprocessing and I need to fully understand the API to make this bot quick and reliable. Or use multiple tabs in seleniunm. Also experiement with going headless. 
+5.  **Mutliprocessing**: One process for stock updates, another for adding to cart and buying (BuyProduct class).
+6.  **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
+7.  Run on AWS Lambda or Google Cloud Functions.
 
 ---
 
