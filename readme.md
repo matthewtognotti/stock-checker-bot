@@ -25,7 +25,7 @@ This script automates the process of checking product stock on a website that re
 - **Login Automation and reCATPCHA Bypass**: Logs into the website using Selenium to access stock data and bypasses the reCAPTCHA.
 - **Stock Monitoring**: Scrapes product data and checks stock status every minute. Automatically logs back when bot detects it has been logged out by the site. 
 - **Telegram Notifications**: Sends a message to the user via Telegram when products are in stock.
-- 
+
 ---
 
 ## 📋 Prerequisites
@@ -88,31 +88,32 @@ Before running the script, ensure you have the following:
 
 ## 🚀 Further Improvements
 
+Robust error handling, auto-recovery, logging, and deployment strategies. Bot is resilient and self-healing.
+
 Now
 --
-1. Fix issue with telegram bot instantiation in while loop. errors if it is outside. 
-2. Put code through windsurf to make it production grade. Add try and except blocks for errors. Good comments. Readme.
-3. Add Error Handling: Implement robust error handling for login failures, network issues, and Telegram API errors.
+1. Add Error Handling: Implement robust error handling for login failures, network issues, and Telegram API errors, Also read time out error from URLlib. Make bot self-healing.
+
+2. Commit first, then put code through windsurf.
+
+3. Proof read all code, comments, and files in repo
 4. Create improved list of improvements below (should these be issues in github?)
-5. Create new repo
+5. Finalize the readme, create new repo, and publish the code
 
-
-- Remove duplicate messages (how does that affect exlcuded products?)
-- Auto buy when in stock? Only once a day? 
-- Unit tests w/ site HTML for purchasing products
-- Docker File -> AWS
-- Raspberry Pi w/ react front end display. 
 
 
 Future
 --
-1. **Add Logging**: Implement a logging system to track bot activity, errors, and stock updates.
-2.  Also read time out error from URLlib
-3.  **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
-4.  Add hash map or other ds (use array of tuples) to store product variants in product and display to the user. this may need to be done with multiprocessing so that we don't get stuck loading on a single page. Additionally, research more about the selenium API (Selenium vs Selenium Base?). There may be a built in way to do multiprocessing and I need to fully understand the API to make this bot quick and reliable. Or use multiple tabs in seleniunm. Also experiement with going headless. 
-5.  **Mutliprocessing**: One process for stock updates, another for adding to cart and buying (BuyProduct class).
-6.  **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
-7.  Run on AWS Lambda or Google Cloud Functions.
+- Remove duplicate messages (how does that affect exlcuded products?)
+- Auto buy when in stock -  Only once a day? 
+- Unit tests w/ site HTML for purchasing products
+- Docker File -> AWS
+- Raspberry Pi w/ react front end display. 
+  
+1.  **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
+2.  Add hash map or other ds (use array of tuples) to store product variants in product and display to the user. this may need to be done with multiprocessing so that we don't get stuck loading on a single page. Additionally, research more about the selenium API (Selenium vs Selenium Base?). There may be a built in way to do multiprocessing and I need to fully understand the API to make this bot quick and reliable. Or use multiple tabs in seleniunm. Also experiement with going headless. 
+3.  **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
+4.  Run on AWS Lambda or Google Cloud Functions.
 
 ---
 

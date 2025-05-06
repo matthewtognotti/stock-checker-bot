@@ -1,3 +1,11 @@
+import asyncio
+import logging
+import time
+from datetime import datetime
+from telegram import Bot
+from constants import EXCLUDED_PRODUCTS
+from dotenv import load_dotenv
+from os import getenv
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -5,14 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
-import time
-from datetime import datetime
-import asyncio
-from telegram import Bot
-from constants import EXCLUDED_PRODUCTS
-from dotenv import load_dotenv
-from os import getenv
-import logging
+
 
 load_dotenv()
 LOGIN_PAGE = getenv("LOGIN_PAGE")
@@ -25,6 +26,18 @@ COMPANY_NAME = getenv("COMPANY_NAME")
 
 if not all([LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, COMPANY_NAME]):
     raise ValueError("Missing environment variables. Check your .env file.")
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler("stock_checker.log"),
+        logging.StreamHandler()                   
+    ]
+)
 
 
 class Product:
@@ -48,23 +61,22 @@ class StockChecker:
 
     def _handle_recaptcha(self) -> None:
         """ 
-        Sometimes the reCAPTCHA iframe isn't present, so WebDriverWait throws an exception. 
-        
-        This bypasses the reCaptcha everytime, so we don't have to solve it
+        Sometimes the reCAPTCHA iframe is present, sometimes it isn't.
+        This bypasses the reCaptcha everytime, so we don't have to solve it.
         """
         try:
             # Wait for the iframe to be present and switch to it
-            iframe = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[title='reCAPTCHA']")))
+            iframe = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[title='reCAPTCHA']")))
             self.driver.switch_to.frame(iframe)
             # Wait for the reCAPTCHA checkbox to be clickable and click it
-            recaptcha_checkbox = WebDriverWait(self.driver, 2).until(EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border")))
+            recaptcha_checkbox = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border")))
             self._scroll_into_view(recaptcha_checkbox)
             recaptcha_checkbox.click()
+            logger.info("reCAPTCHA bypassed")
             
         except TimeoutException:
             # reCAPTCHA not present; skipping
-            logging.debug("reCAPTCHA not found; continuing without interaction.")
-            pass
+            logger.info("reCAPTCHA not found")
         
         self.driver.switch_to.default_content()
         
@@ -75,11 +87,12 @@ class StockChecker:
         field_input.send_keys(value)
            
     def login(self) -> None:
-        driver = self.driver
-        
+        """
+            Logs the bot into the target website
+        """
+        logger.info("Starting log in process")
         # Open the log in page
-        driver.get(LOGIN_PAGE)
-        
+        self.driver.get(LOGIN_PAGE)
         # Input the email
         self._input_field("username", EMAIL)
         # Input Password
@@ -87,16 +100,19 @@ class StockChecker:
         
         self._handle_recaptcha()
     
-        # Find and click the log in button to finsh signing in
-        login_button = driver.find_element(By.NAME, "login")
+        # Find and click the log in button
+        login_button = self.driver.find_element(By.NAME, "login")
         self._scroll_into_view(login_button)
         login_button.click()
-        time.sleep(2) #TODO: remove this sleep
-        driver.get(PRODUCT_PAGE)
+        # Wait for the form to be submitted, then get the product page
+        time.sleep(2) #TODO: Remove this sleep
+        self.driver.get(PRODUCT_PAGE)
+        logger.info("Log in successful")
     
     def is_logged_in(self) -> bool:
         """
-            Checks if the bot is currently logged
+            Checks if the bot is currently logged.
+            Assumes the webdriver is on the product page.
             Returns True if logged in, False otherwise.
         """
         # Find the first product element
@@ -113,7 +129,7 @@ class StockChecker:
 
         """
         Given the proudct page URL, return the product variants 
-        that are in stock in a list of tuples with the prices
+        that are in stock in a list of tuples with the prices.
         
         List of tuples chosen over ordered hash map because we need to iterate
         over the variants and do not need fast look up, insertions, deletions. 
@@ -158,6 +174,7 @@ class StockChecker:
         return in_stock_variants
     
     def get_products(self) -> None:
+        logger.info("Scraping product data")
         driver = self.driver
         # Keep track of the number of in stock items
         self.stock_count = 0
@@ -201,11 +218,12 @@ class StockChecker:
                     message += f"➡️ {size}: {price}\n"
                 
                 message += f"🔗 Link: {product.url}\n\n"
-                    
+        logger.info(f"Formatted Message Created:\n{message}")           
         return message
     
     def quit(self) -> None:
         """ Close the driver/browser """
+        logger.info("Bot is shutting down")
         self.driver.quit()
         
                     
@@ -219,36 +237,40 @@ class TelegramBot:
 
 
 async def main():
+    logger.info("The Bot has started")
     checker = StockChecker()
     checker.login()
     bot = TelegramBot()
-    await bot.send_message("The bot has started...")
-    logging.info("The Bot has started")
-    
     try:
         while True:
-            
-            # Refresh the page to update the stock data
-            checker.driver.refresh()
-            
-            # Ensure the bot is logged in becuase it gets auto logged out by the site after 24 hours
-            if checker.is_logged_in() is False:
+            try:
+                # Refresh the page to update the stock data
+                checker.driver.refresh()
+                # Ensure the bot is logged in becuase it gets auto logged out by the site after 24 hours
+                if checker.is_logged_in() is False:
+                    logger.info("Bot was logged out, logging back in")
+                    checker.login()
+                # Scrape product data
+                checker.get_products()
+                # Only message the user if at least one item is in stock
+                if checker.stock_count > 0:
+                    message = checker.format_message()
+                    await bot.send_message(message)
+            except Exception as e:
+                logger.exception("Error in main loop. Restarting to self-heal in 60s")
+                checker.quit()
+                checker = StockChecker()
                 checker.login()
-            
-            # Scrape product data
-            checker.get_products()
-            
-            # Only message the user if at least one item is in stock
-            if checker.stock_count > 0:
-                message = checker.format_message()
-                await bot.send_message(message)
-                        
-            await asyncio.sleep(60)
+            finally:
+                await asyncio.sleep(60) # Always sleep, whether it succeeded or failed
             
     except KeyboardInterrupt:
+        logger.info("Process interrupted by Keyboard. Shutting down")
+    except Exception as e:
+        logger.exception(f"Unhandled exception in main loop")
+    finally:
         checker.quit()
-        await bot.send_message("The bot has been shut off...")
-        logging.info("Process interrupted by Keyboard. Closing WebDriver.")
+        await bot.send_message("Bot has shut down")
         
     
 if __name__ == "__main__":

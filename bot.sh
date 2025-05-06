@@ -1,4 +1,4 @@
-function matcha-bot() {
+function bot() {
   # Navigate to the directory containing the project
   cd ~/Desktop/Programming\ Projects\ 2025/python_web_bot/bash_scripts  || { echo "Directory not found"; return 1; }
 
@@ -14,9 +14,9 @@ function matcha-bot() {
   venv/bin/python || { echo "Failed to run main.py"; return 1; }
 }
 
-export -f matcha-bot
+export -f bot
 
-function matcha-login() {
+function login() {
   # Navigate to the directory containing the project
   cd ~/Desktop/Programming\ Projects\ 2025/python_web_bot/bash_scripts  || { echo "Directory not found"; return 1; }
 
@@ -32,4 +32,4 @@ function matcha-login() {
   venv/bin/python login.py || { echo "Failed to run login.py"; return 1; }
 }
 
-export -f matcha-login
+export -f login
