@@ -89,6 +89,7 @@ class StockChecker:
     def login(self) -> None:
         """
         Logs the bot into the target website
+        Confirms successful log in by checking for a log in session cookie.
         """
         logger.info("Starting log in process")
         # Open the log in page
@@ -107,24 +108,28 @@ class StockChecker:
         # Wait for the form to be submitted, then get the product page
         time.sleep(2) #TODO: Remove this sleep
         self.driver.get(PRODUCT_PAGE)
-        logger.info("Log in successful")
+        
+        # Now, we confirm that the log in was successful by checking for the session cookie
+        if self.is_logged_in(): 
+            logger.info("Log in successful")
+            return
+        else:
+            logger.error("Log in failed")
     
     def is_logged_in(self) -> bool:
         """
-        Checks if the bot is currently logged.
-        Assumes the webdriver is on the product page.
+        Checks if the bot is currently logged in by checking 
+        for the wordpress_logged_in_* session cookie: 
+            - https://cookiedatabase.org/cookie/wordpress/wordpress_logged_in_/
+            - https://developer.wordpress.org/advanced-administration/wordpress/cookies/
         Returns True if logged in, False otherwise.
         """
-        # Find the first product element
-        # If it is neither in stock or out of stock then the bot is signed out
-        try:
-            product = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li.product")))
-            class_name = product.get_attribute("class")
-            return "instock" in class_name or "outofstock" in class_name
-        
-        except NoSuchElementException:
-            return False
-            
+        cookies = self.driver.get_cookies()
+        for c in cookies:
+            if c['name'].startswith('wordpress_logged_in_'):
+                return True
+        return False
+    
     def get_in_stock_variants(self, url : str) -> list:
         """
         Given the proudct page URL, return the product variants 
