@@ -204,12 +204,16 @@ class StockChecker:
             status = "Out of Stock"
             variants = []
             if "instock" in product.get_attribute("class"):
-                status = "In Stock"
                 variants = self.get_in_stock_variants(url)
-                self.stock_count += 1
+                # Product is only in stock if it has at least one variant
+                if len(variants) >= 1:
+                    status = "In Stock"
+                    self.stock_count += 1 
                 
             # Add product to the product list
             self.products.append(Product(title, status, url, variants))
+            
+        logger.info(f"{self.stock_count} products in stock")
             
     def format_message(self) -> str:
         """ 
@@ -222,7 +226,7 @@ class StockChecker:
         
         for product in self.products:
 
-            if len(product.variants) >=1:   
+            if product.status == "In Stock":   
                 message += f"🍵 Name: {product.title}\n✅ Status: {product.status}\n"
                 
                 for size, price in product.variants:
