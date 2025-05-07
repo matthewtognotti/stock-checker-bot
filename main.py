@@ -14,7 +14,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 
-
 load_dotenv()
 LOGIN_PAGE = getenv("LOGIN_PAGE")
 EMAIL = getenv("EMAIL")
@@ -27,7 +26,6 @@ COMPANY_NAME = getenv("COMPANY_NAME")
 if not all([LOGIN_PAGE, EMAIL, PASSWORD, PRODUCT_PAGE, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, COMPANY_NAME]):
     raise ValueError("Missing environment variables. Check your .env file.")
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -39,16 +37,18 @@ logging.basicConfig(
     ]
 )
 
-
 class Product:
+    """       
+    """
     def __init__(self, title, status, url, variants):
         self.title = title
         self.status = status
         self.url = url
         self.variants = variants
         
-
 class StockChecker:
+    """       
+    """
     def __init__(self):
         # Set up the webdriver
         self.driver = webdriver.Chrome()
@@ -56,7 +56,7 @@ class StockChecker:
         self.stock_count = 0
         
     def _scroll_into_view(self, element) -> None:
-        """ Scroll to an element on the page using Javascript """
+        """Scroll to an element on the page using Javascript"""
         self.driver.execute_script("arguments[0].scrollIntoView();", element)
 
     def _handle_recaptcha(self) -> None:
@@ -88,7 +88,7 @@ class StockChecker:
            
     def login(self) -> None:
         """
-            Logs the bot into the target website
+        Logs the bot into the target website
         """
         logger.info("Starting log in process")
         # Open the log in page
@@ -111,9 +111,9 @@ class StockChecker:
     
     def is_logged_in(self) -> bool:
         """
-            Checks if the bot is currently logged.
-            Assumes the webdriver is on the product page.
-            Returns True if logged in, False otherwise.
+        Checks if the bot is currently logged.
+        Assumes the webdriver is on the product page.
+        Returns True if logged in, False otherwise.
         """
         # Find the first product element
         # If it is neither in stock or out of stock then the bot is signed out
@@ -126,7 +126,6 @@ class StockChecker:
             return False
             
     def get_in_stock_variants(self, url : str) -> list:
-
         """
         Given the proudct page URL, return the product variants 
         that are in stock in a list of tuples with the prices.
@@ -158,7 +157,7 @@ class StockChecker:
                 # Extract size
                 size = variant.find_element(By.CLASS_NAME, "pa-size").find_element(By.TAG_NAME, "dd").text.strip()
                 # Extract price (USD)
-               # us_price = variant.find_element(By.CLASS_NAME, "woocs_price_USD")
+                # us_price = variant.find_element(By.CLASS_NAME, "woocs_price_USD")
                 currency_symbol = variant.find_element(By.CLASS_NAME, "woocommerce-Price-currencySymbol").text
                 whole_price = variant.find_element(By.CLASS_NAME, "woocommerce-Price-amount").text
                 decimal_price = variant.find_element(By.CLASS_NAME, "woocommerce-Price-decimal").text       
@@ -174,6 +173,9 @@ class StockChecker:
         return in_stock_variants
     
     def get_products(self) -> None:
+        """ 
+        Scrapes product data from the product page appends the relevent data to product list.
+        """
         logger.info("Scraping product data")
         driver = self.driver
         # Keep track of the number of in stock items
@@ -205,13 +207,17 @@ class StockChecker:
             self.products.append(Product(title, status, url, variants))
             
     def format_message(self) -> str:
+        """ 
+        Format the Telegram text message to the user based on the stock data.
+        Returns string to send as text message using the Telegram API.
+        """
         formatted_time = time.strftime("%a, %d %b %I:%M %p", time.localtime())
         message = COMPANY_NAME + " Stock Check\n\n"
         message += f"🕜 Last Checked: {formatted_time}\n\n"
         
         for product in self.products:
 
-            if product.status == "In Stock":
+            if len(product.variants) >=1:   
                 message += f"🍵 Name: {product.title}\n✅ Status: {product.status}\n"
                 
                 for size, price in product.variants:
@@ -225,9 +231,10 @@ class StockChecker:
         """ Close the driver/browser """
         logger.info("Bot is shutting down")
         self.driver.quit()
-        
-                    
+                          
 class TelegramBot:
+    """       
+    """
     def __init__(self):
         self.bot = Bot(token=TELEGRAM_TOKEN)
 
@@ -237,6 +244,8 @@ class TelegramBot:
 
 
 async def main():
+    """       
+    """
     logger.info("The Bot has started")
     checker = StockChecker()
     checker.login()
@@ -244,8 +253,6 @@ async def main():
     try:
         while True:
             try:
-                # Refresh the page to update the stock data
-                checker.driver.refresh()
                 # Ensure the bot is logged in becuase it gets auto logged out by the site after 24 hours
                 if checker.is_logged_in() is False:
                     logger.info("Bot was logged out, logging back in")
@@ -262,7 +269,9 @@ async def main():
                 checker = StockChecker()
                 checker.login()
             finally:
-                await asyncio.sleep(60) # Always sleep, whether it succeeded or failed
+                await asyncio.sleep(60)
+                # Refresh the page to update the stock data
+                checker.driver.refresh()
             
     except KeyboardInterrupt:
         logger.info("Process interrupted by Keyboard. Shutting down")
