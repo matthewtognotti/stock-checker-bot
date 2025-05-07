@@ -92,15 +92,14 @@ Robust error handling, auto-recovery, logging, and deployment strategies. Bot is
 
 Today
 --
-1. Figure out how to use try-except and read the stack trace
-2. Add Error Handling: Implement robust error handling for login failures, network issues, and Telegram API errors, Also read time out error from URLlib. Make bot self-healing.
+1. Add Error Handling: Implement robust error handling for login failures, network issues, and Telegram API errors, Also read time out error from URLlib. Make bot self-healing.
 
-3. Commit first, then put code through windsurf.
+2. Commit first, then put code through windsurf.
 
-4. Merge with Main Branch
+3. Merge with Main Branch
 
-5. Proof read all code, comments, and files in repo
-6. Finalize the readme, create new repo, move issues to the repo, and publish the code
+4. Proof read all code, comments, and files in repo
+5. Finalize the readme, create new repo, move issues to the repo, and publish the code
 
 
 

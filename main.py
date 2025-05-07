@@ -38,8 +38,7 @@ logging.basicConfig(
 )
 
 class Product:
-    """       
-    """
+    """Represents a product with a title, status, URL, and its product variants."""
     def __init__(self, title, status, url, variants):
         self.title = title
         self.status = status
@@ -47,8 +46,11 @@ class Product:
         self.variants = variants
         
 class StockChecker:
-    """       
+    """  
+    A class to handle the login and scraping process. It interacts with the website
+    using Selenium, logs in with provided credentials, and scrapes product stock data.
     """
+    
     def __init__(self):
         # Set up the webdriver
         self.driver = webdriver.Chrome()
@@ -56,13 +58,20 @@ class StockChecker:
         self.stock_count = 0
         
     def _scroll_into_view(self, element) -> None:
-        """Scroll to an element on the page using Javascript"""
+        """
+        Scrolls the browser window to bring the specified element into view.
+
+        Args:
+            element: The element to scroll to.
+        """
         self.driver.execute_script("arguments[0].scrollIntoView();", element)
 
     def _handle_recaptcha(self) -> None:
-        """ 
-        Sometimes the reCAPTCHA iframe is present, sometimes it isn't.
-        This bypasses the reCaptcha everytime, so we don't have to solve it.
+        """
+        Handles the reCAPTCHA challenge if it appears on the login page.
+
+        If the reCAPTCHA is present, the function bypasses it by interacting with the reCAPTCHA checkbox.
+        If it's not present, the function logs that reCAPTCHA was not found.
         """
         try:
             # Wait for the iframe to be present and switch to it
@@ -81,15 +90,19 @@ class StockChecker:
         self.driver.switch_to.default_content()
         
     def _input_field(self, field_name, value):
-        """Helper function to find a field, scroll into view, and input a value"""
+        """Helper function to find a field, scroll into view, and input the given value"""
         field_input = self.driver.find_element(By.NAME, field_name)
         self._scroll_into_view(field_input)
         field_input.send_keys(value)
            
     def login(self) -> bool:
         """
-        Logs the bot into the target website
-        Confirms successful login by checking for a login session cookie.
+        Logs into the target website by submitting the login form with the provided credentials.
+
+        It waits until the session cookie is set to confirm successful login.
+
+        Returns:
+            bool: True if login is successful, False otherwise.
         """
         logger.info("Starting login process")
         # Open the login page
@@ -121,11 +134,11 @@ class StockChecker:
         
     def is_logged_in(self) -> bool:
         """
-        Checks if the bot is currently logged in by checking 
-        for the wordpress_logged_in_* session cookie: 
-            - https://cookiedatabase.org/cookie/wordpress/wordpress_logged_in_/
-            - https://developer.wordpress.org/advanced-administration/wordpress/cookies/
-        Returns True if logged in, False otherwise.
+        Checks if the bot is logged in by looking for the WordPress session cookie.
+            (https://developer.wordpress.org/advanced-administration/wordpress/cookies/)
+
+        Returns:
+            bool: True if logged in (session cookie found), False otherwise.
         """
         cookies = self.driver.get_cookies()
         for c in cookies:
@@ -135,25 +148,25 @@ class StockChecker:
     
     def get_in_stock_variants(self, url : str) -> list:
         """
-        Given the proudct page URL, return the product variants 
-        that are in stock in a list of tuples with the prices.
-        
-        List of tuples chosen over ordered hash map because we need to iterate
-        over the variants and do not need fast look up, insertions, deletions. 
+        Scrapes the product page for in-stock variants of a product.
+
+        Given a product page URL, this function looks for variants that are in stock and returns a list of
+        tuples containing the size and price.
+
+        Args:
+            url (str): The URL of the product page.
+
+        Returns:
+            list: A list of tuples containing the size and price of in-stock variants.
         """
-        
         # Open the product page in a new tab (window)
         product_window = self.driver.current_window_handle
         self.driver.execute_script(f"window.open('{url}', '_blank');")
-        
         # Switch to the new window
         self.driver.switch_to.window(self.driver.window_handles[1])
-        
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "product-form-row")))
-    
         # Locate all product variants
         variants = self.driver.find_elements(By.CLASS_NAME, "product-form-row")
-
         in_stock_variants = []
 
         # Iterate through each variant
@@ -181,17 +194,19 @@ class StockChecker:
         return in_stock_variants
     
     def get_products(self) -> None:
-        """ 
-        Scrapes product data from the product page appends the relevent data to product list.
+        """
+        Scrapes the product data from the product page and updates the list of products.
+
+        It goes through all product elements, checks stock status, and appends the relevant product data 
+        to the `self.products` list.
         """
         logger.info("Scraping product data")
-        driver = self.driver
         # Keep track of the number of in stock items
         self.stock_count = 0
         # Clear old data from last update
         self.products.clear()
         
-        product_elements = driver.find_elements(By.CSS_SELECTOR, "li.product")
+        product_elements = self.driver.find_elements(By.CSS_SELECTOR, "li.product")
         
         for product in product_elements:
             # Extract product title and url
@@ -218,9 +233,14 @@ class StockChecker:
         logger.info(f"{self.stock_count} products in stock")
             
     def format_message(self) -> str:
-        """ 
-        Format the Telegram text message to the user based on the stock data.
-        Returns string to send as text message using the Telegram API.
+        """
+        Formats the stock data into a message to be sent via Telegram.
+
+        It creates a human-readable message that includes information about products that are in stock,
+        including their sizes, prices, and URLs.
+
+        Returns:
+            str: The formatted message to be sent.
         """
         formatted_time = time.strftime("%a, %d %b %I:%M %p", time.localtime())
         message = COMPANY_NAME + " Stock Check\n\n"
@@ -239,25 +259,39 @@ class StockChecker:
         return message
     
     def quit(self) -> None:
-        """ Close the driver/browser """
+        """
+        Closes the WebDriver and shuts down the bot.
+
+        It terminates the browser session to clean up resources after the bot has finished.
+        """
         logger.info("Bot is shutting down")
         self.driver.quit()
        
                           
 class TelegramBot:
-    """       
+    """
+    A simple wrapper for interacting with the Telegram Bot API to send messages.
     """
     def __init__(self):
         self.bot = Bot(token=TELEGRAM_TOKEN)
 
     async def send_message(self, message) -> None:
-        # Await the coroutine to properly send the message
+        """
+        Sends a message to the specified Telegram chat.
+
+        Args:
+            message (str): The message content to send.
+        """
         await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
 
 async def main():
-    """       
-    Main loop to run the stock checker bot.
+    """
+    Main loop that runs the stock checker bot.
+
+    Logs into the website, checks stock periodically, and sends 
+    Telegram alerts for in-stock products. Handles re-login if 
+    logged out and retries on errors. Runs until manually stopped.
     """
     logger.info("The Bot has started")
     checker = StockChecker()
