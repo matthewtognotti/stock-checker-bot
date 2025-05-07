@@ -86,13 +86,13 @@ class StockChecker:
         self._scroll_into_view(field_input)
         field_input.send_keys(value)
            
-    def login(self) -> None:
+    def login(self) -> bool:
         """
         Logs the bot into the target website
-        Confirms successful log in by checking for a log in session cookie.
+        Confirms successful login by checking for a login session cookie.
         """
-        logger.info("Starting log in process")
-        # Open the log in page
+        logger.info("Starting login process")
+        # Open the login page
         self.driver.get(LOGIN_PAGE)
         # Input the email
         self._input_field("username", EMAIL)
@@ -101,21 +101,24 @@ class StockChecker:
         
         self._handle_recaptcha()
     
-        # Find and click the log in button
+        # Find and click the login button
         login_button = self.driver.find_element(By.NAME, "login")
         self._scroll_into_view(login_button)
         login_button.click()
-        # Wait for the form to be submitted, then get the product page
-        time.sleep(2) #TODO: Remove this sleep
-        self.driver.get(PRODUCT_PAGE)
-        
-        # Now, we confirm that the log in was successful by checking for the session cookie
-        if self.is_logged_in(): 
-            logger.info("Log in successful")
-            return
-        else:
-            logger.error("Log in failed")
     
+        # After submitting the login form, we wait for the POST request to complete 
+        # and ensure that the the login session cookie is set before navigating to the product page.
+        try:
+            WebDriverWait(self.driver, 10).until(
+                lambda driver: self.is_logged_in()  # Wait until the session cookie is present
+            )
+            logger.info("Login successful. Session cookie found.")
+            self.driver.get(PRODUCT_PAGE)  # Once logged in, navigate to the product page
+            return True
+        except TimeoutException:
+            logger.error("Login failed: Session cookie not found.")
+            return False
+        
     def is_logged_in(self) -> bool:
         """
         Checks if the bot is currently logged in by checking 
@@ -185,11 +188,10 @@ class StockChecker:
         driver = self.driver
         # Keep track of the number of in stock items
         self.stock_count = 0
-        
-        product_elements = driver.find_elements(By.CSS_SELECTOR, "li.product")
-        
         # Clear old data from last update
         self.products.clear()
+        
+        product_elements = driver.find_elements(By.CSS_SELECTOR, "li.product")
         
         for product in product_elements:
             # Extract product title and url
@@ -240,6 +242,7 @@ class StockChecker:
         """ Close the driver/browser """
         logger.info("Bot is shutting down")
         self.driver.quit()
+       
                           
 class TelegramBot:
     """       
@@ -254,15 +257,18 @@ class TelegramBot:
 
 async def main():
     """       
+    Main loop to run the stock checker bot.
     """
     logger.info("The Bot has started")
     checker = StockChecker()
-    checker.login()
     bot = TelegramBot()
+    if not checker.login():
+        await bot.send_message("⚠️ Login failed. Manual intervention required.")
+        return  # Exit early, since login failed we don't want to try continously and get rate limited.
     try:
         while True:
             try:
-                # Ensure the bot is logged in becuase it gets auto logged out by the site after 24 hours
+                # Confirm the bot is logged in becuase it gets auto logged out by the site after 24 hours
                 if checker.is_logged_in() is False:
                     logger.info("Bot was logged out, logging back in")
                     checker.login()
@@ -278,14 +284,13 @@ async def main():
                 checker = StockChecker()
                 checker.login()
             finally:
-                await asyncio.sleep(60)
-                # Refresh the page to update the stock data
-                checker.driver.refresh()
+                await asyncio.sleep(60) # Delay between scrapes
+                checker.driver.refresh() # Refresh the page to update the stock data
             
     except KeyboardInterrupt:
         logger.info("Process interrupted by Keyboard. Shutting down")
     except Exception as e:
-        logger.exception(f"Unhandled exception in main loop")
+        logger.exception(f"Unhandled exception in main loop: {e}")
     finally:
         checker.quit()
         await bot.send_message("Bot has shut down")
