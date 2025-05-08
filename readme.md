@@ -14,7 +14,6 @@ This script automates the process of checking product stock on a website that re
   - [🎨 Customization](#-customization)
   - [🛠 Troubleshooting](#-troubleshooting)
   - [🚀 Further Improvements](#-further-improvements)
-  - [Today](#today)
   - [Future](#future)
   - [📜 License](#-license)
 
@@ -89,19 +88,6 @@ Before running the script, ensure you have the following:
 ## 🚀 Further Improvements
 
 Robust error handling, auto-recovery, logging, and deployment strategies. Bot is resilient and self-healing.
-
-Today
---
-1. Add Error Handling: Implement robust error handling for login failures, network issues, and Telegram API errors, Also read time out error from URLlib. Make bot self-healing.
-
-2. Commit first, then put code through windsurf.
-
-3. Merge with Main Branch
-
-4. Proof read all code, comments, and files in repo
-5. Finalize the readme, create new repo, move issues to the repo, and publish the code
-
-
 
 Future
 --
