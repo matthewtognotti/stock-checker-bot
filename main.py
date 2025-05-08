@@ -13,6 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.remote.webelement import WebElement
 
 # Local Imports
 from constants import EXCLUDED_PRODUCTS
@@ -56,7 +57,7 @@ logging.basicConfig(
 class Product:
     """Represents a product with a title, status, URL, and its product variants."""
 
-    def __init__(self, title, status, url, variants):
+    def __init__(self, title: str, status: str, url: str, variants: list):
         self.title = title
         self.status = status
         self.url = url
@@ -75,12 +76,15 @@ class StockChecker:
         self.products = []
         self.stock_count = 0
 
-    def _scroll_into_view(self, element) -> None:
+    def _scroll_into_view(self, element: WebElement) -> None:
         """
         Scrolls the browser window to bring the specified element into view.
 
         Args:
-            element: The element to scroll to.
+            element (WebElement): The element to scroll to.
+        
+        Returns:
+            None
         """
         self.driver.execute_script("arguments[0].scrollIntoView();", element)
 
@@ -91,6 +95,12 @@ class StockChecker:
         If the reCAPTCHA is present, the function bypasses it by interacting with the
         reCAPTCHA checkbox. If it's not present, the function logs that reCAPTCHA
         was not found.
+
+        Args:
+            None
+
+        Returns:
+            None
         """
         try:
             # Wait for the iframe to be present and switch to it
@@ -118,6 +128,13 @@ class StockChecker:
         """
         Helper function to find a field, scroll into view, and input
         the given value
+
+        Args:
+            field_name (str): The name of the input field to find.
+            value (str): The value to input into the field.
+
+        Returns:
+            None
         """
         field_input = self.driver.find_element(By.NAME, field_name)
         self._scroll_into_view(field_input)
@@ -129,6 +146,9 @@ class StockChecker:
         provided credentials.
 
         It waits until the session cookie is set to confirm successful login.
+
+        Args:
+            None
 
         Returns:
             bool: True if login is successful, False otherwise.
@@ -166,11 +186,14 @@ class StockChecker:
     def is_logged_in(self) -> bool:
         """
         Checks if the bot is logged in by looking for the WordPress session cookie.
-            (https://developer.wordpress.org/advanced-administration/wordpress/cookies/)
+
+        Args:
+            None
 
         Returns:
             bool: True if logged in (session cookie found), False otherwise.
         """
+        # Reference: https://developer.wordpress.org/advanced-administration/wordpress/cookies/
         cookies = self.driver.get_cookies()
         for c in cookies:
             if c["name"].startswith("wordpress_logged_in_"):
@@ -246,6 +269,12 @@ class StockChecker:
 
         It goes through all product elements, checks stock status, and appends the
         relevant product data to the `self.products` list.
+
+        Args:
+            None
+
+        Returns:
+            None
         """
         logger.info("Scraping product data")
         # Keep track of the number of in stock items
@@ -286,6 +315,9 @@ class StockChecker:
         It creates a human-readable message that includes information about
         products that are in stock, including their sizes, prices, and URLs.
 
+        Args:
+            None
+
         Returns:
             str: The formatted message to be sent.
         """
@@ -311,6 +343,12 @@ class StockChecker:
 
         It terminates the browser session to clean up resources after
         the bot has finished.
+
+        Args:
+            None
+
+        Returns:
+            None
         """
         logger.info("Bot is shutting down")
         self.driver.quit()
@@ -322,12 +360,15 @@ class TelegramBot:
     def __init__(self):
         self.bot = Bot(token=TELEGRAM_TOKEN)
 
-    async def send_message(self, message) -> None:
+    async def send_message(self, message: str) -> None:
         """
         Sends a message to the specified Telegram chat.
 
         Args:
             message (str): The message content to send.
+
+        Returns:
+            None
         """
         await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
@@ -338,6 +379,12 @@ async def main():
     Logs into the website, checks stock periodically, and sends
     Telegram alerts for in-stock products. Handles re-login if
     logged out and retries on errors. Runs until manually stopped.
+
+    Args:
+        None
+
+    Returns:
+        None
     """
     logger.info("The Bot has started")
     checker = StockChecker()
