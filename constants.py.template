@@ -1,0 +1,10 @@
+# constants.py.template
+
+# Rename this file to `constants.py` and customize as needed.
+# Do not check this file into version control; use the `constants.py` file instead.
+
+EXCLUDED_PRODUCTS = [
+    "product_1",  # Example product
+    "product_2",  # Example product
+    # Add your own products strings here
+]

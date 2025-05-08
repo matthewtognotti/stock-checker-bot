@@ -1,6 +1,10 @@
-.env
+# Ignore sensitive config file
 constants.py
+
+# Repeated global ignores for team clarity
+.env
+venv/
+.vscode/
 __pycache__/
-venv
-setttings.json
-.vscode
+*.log
+.DS_Store
