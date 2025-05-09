@@ -4,10 +4,10 @@ import project_constants
 
 url = project_constants.MY_SITE
 response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
+soup = BeautifulSoup(response.text, "html.parser")
 
 # Extract all links
-for link in soup.find_all('a'):
-    url = link.get('href')
+for link in soup.find_all("a"):
+    url = link.get("href")
     if "https" in url:
         print(url)
