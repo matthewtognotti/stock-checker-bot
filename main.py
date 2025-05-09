@@ -14,6 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.remote.webelement import WebElement
 
 # Local Imports
@@ -72,8 +73,20 @@ class StockChecker:
     """
 
     def __init__(self):
-        # Set up the webdriver
-        self.driver = webdriver.Chrome()
+        """Set up the webdriver"""
+        # Define a custom user-agent string to mimic a real browser and avoid detection
+        user_agent = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        )
+        # Set up Chrome options to configure the WebDriver's behavior
+        options = Options()
+        options.add_argument(f"user-agent={user_agent}")
+
+        # Create a new Chrome WebDriver with the modified options
+        self.driver = webdriver.Chrome(options=options)
+
         self.products = []
         self.stock_count = 0
 
