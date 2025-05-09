@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import time
+import sys
 from os import getenv
 
 # Third-Party Imports
@@ -82,7 +83,7 @@ class StockChecker:
 
         Args:
             element (WebElement): The element to scroll to.
-        
+
         Returns:
             None
         """
@@ -350,7 +351,7 @@ class StockChecker:
         Returns:
             None
         """
-        logger.info("Bot is shutting down")
+        logger.info("Closing Webdriver")
         self.driver.quit()
 
 
@@ -373,43 +374,56 @@ class TelegramBot:
         await self.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
 
+async def handle_login_failure(bot: TelegramBot, checker: StockChecker) -> None:
+    """
+    Sends a failure alert and shuts down the bot gracefully after login failure.
+
+    Args:
+        bot (TelegramBot): The Telegram bot used to send messages.
+        checker (StockChecker): The stock checker instance to quit.
+
+    Returns:
+        None
+    """
+    await bot.send_message("⚠️ Login failed. Manual intervention required.")
+    logger.info("The Bot was not able to log in. Shutting down.")
+    checker.quit()
+    # Exit early, since login failed we don't want to try continuously
+    # and get rate limited.
+    sys.exit(1)
+
+
 async def main():
     """Main loop that runs the stock checker bot.
 
     Logs into the website, checks stock periodically, and sends
     Telegram alerts for in-stock products. Handles re-login if
-    logged out and retries on errors. Runs until manually stopped.
-
-    Args:
-        None
-
-    Returns:
-        None
+    logged out. Runs until manually stopped.
     """
     logger.info("The Bot has started")
     checker = StockChecker()
     bot = TelegramBot()
+
     if not checker.login():
-        await bot.send_message("⚠️ Login failed. Manual intervention required.")
-        logger.info("The Bot was not able to log in. Shutting down.")
-        checker.quit()
-        # Exit early, since login failed we don't want to
-        # try continously and get rate limited.
-        return
+        await handle_login_failure(bot, checker)
+
     try:
         while True:
             try:
-                # Confirm the bot is logged in becuase it gets auto logged out
+                # Confirm the bot is logged in because it gets auto logged out
                 # by the site after 24 hours
                 if checker.is_logged_in() is False:
-                    logger.info("Bot was logged out, logging back in")
-                    checker.login()
+                    logger.info("Bot was logged out, logging in")
+                    # Try to re-login. If it fails, then exit and don't try again
+                    if not checker.login():
+                        await handle_login_failure(bot, checker)
                 # Scrape product data
                 checker.get_products()
                 # Only message the user if at least one item is in stock
                 if checker.stock_count > 0:
                     message = checker.format_message()
                     await bot.send_message(message)
+
             except Exception as e:
                 logger.exception("Error in main loop. Restarting to self-heal in 60s")
                 checker.quit()
@@ -425,6 +439,7 @@ async def main():
         logger.exception(f"Unhandled exception in main loop: {e}")
     finally:
         checker.quit()
+        logger.info("Shutting down")
         await bot.send_message("Bot has shut down")
 
 

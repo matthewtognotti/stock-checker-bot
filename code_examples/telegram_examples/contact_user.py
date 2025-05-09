@@ -1,3 +1,5 @@
+"""Example of using the Telegram API to send a message to a user"""
+
 import asyncio
 from telegram import Bot
 from dotenv import load_dotenv
@@ -13,7 +15,6 @@ MESSAGE = "Hello! This is your bot."
 
 async def main():
     bot = Bot(token=TELEGRAM_TOKEN)
-    # Await the coroutine to properly send the message
     await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=MESSAGE)
 
 
