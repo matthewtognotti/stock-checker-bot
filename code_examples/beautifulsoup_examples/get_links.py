@@ -1,8 +1,19 @@
+"""Example of extracting all links from an HTML page"""
+
+# Standard Library Imports
+from os import getenv
+
+# Third-Party Imports
 from bs4 import BeautifulSoup
 import requests
-import project_constants
+from telegram import Bot
+from dotenv import load_dotenv
 
-url = project_constants.MY_SITE
+# Load environment variables from the .env file
+load_dotenv()
+MY_SITE = getenv("MY_SITE")
+
+url = MY_SITE
 response = requests.get(url)
 soup = BeautifulSoup(response.text, "html.parser")
 

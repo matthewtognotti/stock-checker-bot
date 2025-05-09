@@ -1,8 +1,20 @@
-# Get the class names of each product
+"""
+Example of scraping product classes from an ecommerce Site
+which can be used to determine if a product is in stock or not
+"""
 
+# Standard Library Imports
+from os import getenv
+
+# Third-Party Imports
 import requests
 from bs4 import BeautifulSoup
-import project_constants
+from telegram import Bot
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file
+load_dotenv()
+PRODUCT_PAGE = getenv("PRODUCT_PAGE")
 
 
 def get_html(url):
@@ -12,14 +24,10 @@ def get_html(url):
 
 
 def main():
-
-    soup = get_html(project_constants.PRODUCT_PAGE)
-
+    soup = get_html(PRODUCT_PAGE)
     ## Find all product elements on page
-
     # Select all <li> elements with class 'product'
     products = soup.select("li.product")
-
     ## Loop through each product element
     for product in products:
         try:
@@ -33,7 +41,6 @@ def main():
                 raise Exception(
                     "The bot is not logged into the site. Cannot retrieve product data."
                 )
-
         except Exception as e:
             print(f"Error: {str(e)}")
             return

@@ -1,3 +1,5 @@
+"""Example of scraping product data from a Woocommerce site"""
+
 import time
 import requests
 from bs4 import BeautifulSoup
@@ -13,12 +15,11 @@ class StockChecker:
     def __init__(self):
         self.products = []
         self.base_url = ""
-        self.headers = {"User-Agent": ""}
 
     def scrape_products(self):
         response = requests.get(self.base_url, headers=self.headers)
         if response.status_code != 200:
-            raise Exception(f"Failed to fetch products: {response.status_code}")
+            raise Exception(f"HTTP Request Failed: {response.status_code}")
 
         soup = BeautifulSoup(response.text, "html.parser")
         product_elements = soup.select("li.product")
@@ -43,7 +44,6 @@ class StockChecker:
 
 def handle_request():
     checker = StockChecker()
-
     try:
         checker.scrape_products()
         message = checker.format_message()
