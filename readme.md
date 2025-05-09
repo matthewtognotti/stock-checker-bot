@@ -1,113 +1,98 @@
-# 🛒 Stock Checker Bot with Telegram Notifications
+# Stock Checker Bot with Telegram Notifications
 
-This script automates the process of checking product stock on a website that requires login and reCAPTCHA to check if a product is in stock. Once a product is in stock, the bot sends a Telegram message to the user with a link and all product variants that are in stock.
+This Python script helps you track product stock from a website that requires login and reCAPTCHA. When a product comes back in stock, it’ll ping you on Telegram with the product link and available variants with different sizes and prices.
 
----
-
-## 📑 Table of Contents
-- [🛒 Stock Checker Bot with Telegram Notifications](#-stock-checker-bot-with-telegram-notifications)
-  - [📑 Table of Contents](#-table-of-contents)
-  - [✨ Features](#-features)
-  - [📋 Prerequisites](#-prerequisites)
-  - [⚙️ Set Up](#️-set-up)
-  - [🧩 Code Structure](#-code-structure)
-  - [🎨 Customization](#-customization)
-  - [🛠 Troubleshooting](#-troubleshooting)
-  - [🚀 Further Improvements](#-further-improvements)
-  - [Future](#future)
-  - [📜 License](#-license)
+The bot handles logouts, errors, and interruptions automatically - so once it's running, you can mostly forget about it.
 
 ---
 
-## ✨ Features
+## Table of Contents
 
-- **Login Automation and reCATPCHA Bypass**: Logs into the website using Selenium to access stock data and bypasses the reCAPTCHA.
-- **Stock Monitoring**: Scrapes product data and checks stock status every minute. Automatically logs back when bot detects it has been logged out by the site. 
-- **Telegram Notifications**: Sends a message to the user via Telegram when products are in stock.
-
----
-
-## 📋 Prerequisites
-
-Before running the script, ensure you have the following:
-
-1. **Python 3.11 or above**: The script is written in Python.
-2. **Telegram Bot**: Create a Telegram bot and obtain the bot token and chat ID.
-3. **ChromeDriver**: Download and install ChromeDriver that matches your Chrome browser version.
+- [Stock Checker Bot with Telegram Notifications](#stock-checker-bot-with-telegram-notifications)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Set Up](#set-up)
+  - [Code Structure](#code-structure)
+  - [Customization](#customization)
+  - [Troubleshooting](#troubleshooting)
+  - [License](#license)
 
 ---
 
-## ⚙️ Set Up
+## Features
 
-1. **Clone the Repository**:
+- **Auto Login & reCAPTCHA Bypass** – Uses Selenium to log into the site and handle reCAPTCHA challenges.
+- **Stock Monitoring** – Checks product availability every minute. If the site logs you out, the bot logs back in automatically.
+- **Telegram Alerts** – Instantly sends you a Telegram message when products are in stock, including a direct link and variant info.
+
+---
+
+## Prerequisites
+
+Before you get started, make sure you’ve got:
+
+1. **Python 3.11 or higher**
+2. **Telegram Bot** – Create one and grab the bot token and your chat ID.
+3. **ChromeDriver** – Download the version that matches your installed version of Chrome.
+
+---
+
+## Set Up
+
+1. **Clone the repo**:
     ```bash
     git clone https://github.com/matthewtognotti/stock-checker-bot
     cd stock-checker-bot
     ```
-2. ** Create your Virtual Environemnt (Recommended)**:
+
+2. **Set up a virtual environment (recommended)**:
     ```bash
     python3 -m venv venv
-    source venv/bin/activate
+    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
-3. **Install Dependencies**:
+
+3. **Install the required packages**:
     ```bash
     pip install -r requirements.txt
     ```
-4. **Set Up Environment Variables**
-    Create a `.env` file in the root directory follwing `example .env` provided.
 
-5. **Run the Script**:
+4. **Create a `.env` file**:
+    - Copy from `example.env` and fill in your Telegram token, chat ID, and other config details.
+
+5. **Run the script**:
     ```bash
-    python3 main.py
+    venv/bin/python main.py
     ```
 
 ---
 
-## 🧩 Code Structure
+## Code Structure
 
-- **🛒 StockChecker Class**: Handles the login and product data scraping.
-- **🤖 TelegramBot Class**: Manages sending messages via the Telegram API.
-- **🔄 main Function**: Orchestrates the stock checking and notification process.
-
----
-
-## 🎨 Customization
-
-- **Excluded Products**: Add product titles to an `EXCLUDED_PRODUCTS` list to exclude them from stock checks.
-  
----
-
-## 🛠 Troubleshooting
-
-- **ChromeDriver Issues**: Ensure that the ChromeDriver version matches your Chrome browser version.
-- **Login Failures**: Verify that the login credentials and page elements (e.g., email input, password input) are correctly specified.
-- **Telegram Notifications**: Ensure that the Telegram bot token and chat ID are correctly set in the `.env` file.
+- **StockChecker class** – Handles login and scraping product data.
+- **TelegramBot class** – Sends messages to your Telegram account.
+- **main.py** – Coordinates everything: login, checking, and notifying.
 
 ---
 
-## 🚀 Further Improvements
+## Customization
 
-Robust error handling, auto-recovery, logging, and deployment strategies. Bot is resilient and self-healing.
-
-Future
---
-- Remove duplicate messages (how does that affect exlcuded products?)
-- Auto buy when in stock -  Only once a day? 
-- Unit tests w/ site HTML for purchasing products
-- Docker File -> AWS
-- Raspberry Pi w/ react front end display. 
-  
-1.  **Format message to send product link**: Organize the message in a table for better readability. or use Telegram's inline buttons. 
-2.  Add hash map or other ds (use array of tuples) to store product variants in product and display to the user. this may need to be done with multiprocessing so that we don't get stuck loading on a single page. Additionally, research more about the selenium API (Selenium vs Selenium Base?). There may be a built in way to do multiprocessing and I need to fully understand the API to make this bot quick and reliable. Or use multiple tabs in seleniunm. Also experiement with going headless. 
-3.  **Add Multi-User Support**: Allow multiple Telegram users to receive notifications by managing a list of chat IDs.
-4.  Run on AWS Lambda or Google Cloud Functions.
+- **Skip Certain Products** – Just add product titles to the `EXCLUDED_PRODUCTS` list in constants.py if you don’t want alerts for them.
 
 ---
 
-**📝 Note**: This script is intended for educational purposes. Ensure you comply with the terms of service of the website you are automating.
+## Troubleshooting
+
+- **ChromeDriver errors?** – Make sure the version matches your installed Chrome.
+- **Login not working?** – Double-check your credentials and the site’s input field IDs or product class names.
+- **No Telegram messages?** – Verify your bot token and chat ID are correct in `.env`.
 
 ---
 
-## 📜 License
+Note: This bot is intended for educational purposes. Make sure you're following the rules of the website you're interacting with.
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+---
+
+## License
+
+MIT License. See the [LICENSE](LICENSE) file for the full terms.
