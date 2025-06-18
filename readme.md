@@ -13,7 +13,7 @@ Ready to run in a Docker container for easy deployment and reproducibility acros
 - [Stock Checker Bot with Telegram Notifications](#stock-checker-bot-with-telegram-notifications)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
-  - [Running the Project with Docker](#running-the-project-with-docker)
+  - [Running the App with Docker](#running-the-app-with-docker)
     - [Project-Specific Docker Details](#project-specific-docker-details)
     - [Environment Variables](#environment-variables)
     - [Build and Run Instructions](#build-and-run-instructions)
@@ -36,7 +36,7 @@ Ready to run in a Docker container for easy deployment and reproducibility acros
 
 ---
 
-## Running the Project with Docker
+## Running the App with Docker
 
 This project includes a Docker setup for easy and reproducible execution. The provided `Dockerfile` and `docker-compose.yml` are tailored for this Python application, which uses Selenium with Chromium/ChromeDriver.
 
