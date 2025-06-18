@@ -1,0 +1,62 @@
+# 1. Version control
+.git/
+.gitignore
+
+# 2. Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+
+# 3. Environment and secrets
+.env*
+*.env
+*.pem
+*.key
+*.crt
+
+# 4. Development artifacts
+.idea/
+.vscode/
+*.swp
+*.swo
+dist/
+build/
+out/
+test/
+tests/
+debug/
+*.log
+
+# 5. Project-specific patterns
+*.md
+README*
+docs/
+Dockerfile*
+docker-compose*
+tmp/
+temp/
+*.tmp
+.local/
+local/
+
+# 6. Other language-specific (not present, but for completeness)
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+# Go
+/vendor/
+*.test
+.go-cache/
+# Java
+target/
+*.class
+.gradle/
+
+# 7. Miscellaneous
+*.example
+
+# End of .dockerignore

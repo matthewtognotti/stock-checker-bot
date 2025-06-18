@@ -52,7 +52,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] [%(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[logging.FileHandler("stock_checker.log"), logging.StreamHandler()],
+    handlers=[logging.FileHandler("/tmp/stock_checker.log"), logging.StreamHandler()],
 )
 
 
@@ -82,6 +82,7 @@ class StockChecker:
         )
         # Set up Chrome options to configure the WebDriver's behavior
         options = Options()
+        options.add_argument("--headless")
         options.add_argument(f"user-agent={user_agent}")
 
         # Create a new Chrome WebDriver with the modified options

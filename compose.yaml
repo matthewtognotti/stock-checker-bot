@@ -1,0 +1,14 @@
+services:
+  python-app:
+    build:
+      context: .
+    container_name: python-app
+    restart: unless-stopped
+    init: true
+    env_file: ./.env
+    # No ports exposed: not a web server
+    # No volumes: no persistent data required
+    # No external dependencies detected
+    # Entrypoint and CMD are set in Dockerfile (runs main.py)
+# No networks section: only one service, no inter-service communication required
+# No volumes section: no persistent data required
